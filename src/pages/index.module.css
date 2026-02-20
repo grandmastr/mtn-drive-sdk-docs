@@ -1,0 +1,42 @@
+.main {
+  margin: 0 auto;
+  max-width: 960px;
+  padding: 3rem 1rem 4rem;
+}
+
+.hero {
+  border: 1px solid #d9e2ef;
+  border-radius: 12px;
+  padding: 2rem;
+  background: linear-gradient(180deg, #f4f8ff 0%, #ffffff 100%);
+}
+
+.hero h1 {
+  margin-bottom: 0.75rem;
+}
+
+.hero p {
+  margin-bottom: 1.5rem;
+  max-width: 700px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.card {
+  margin-top: 1.5rem;
+  border: 1px solid #d9e2ef;
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  background: #ffffff;
+}
+
+.checklist {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.5rem;
+}
