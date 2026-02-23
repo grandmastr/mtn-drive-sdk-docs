@@ -10,10 +10,14 @@ Project location:
 
 ```bash
 pnpm install
-pnpm start
+pnpm dev
 pnpm build
+pnpm start
 pnpm lint:md
 ```
+
+- `pnpm dev`: local development server (Webpack/HMR)
+- `pnpm start`: serves prebuilt `build/` output (production-like, no Webpack dev runtime)
 
 ## PipeOps deployment
 
@@ -24,8 +28,13 @@ Set these project settings in PipeOps:
 - Framework: `ReactJS` (or equivalent static frontend option)
 - Build command: `corepack enable && pnpm install --frozen-lockfile && pnpm build:ci`
 - Artifact/output directory: `build`
-- Start command (if requested): `npx serve -s build -l $PORT`
+- Start command: `pnpm start`
 - Env var (if requested): `PORT=3000`
+
+Fallback runtime commands (only if PipeOps does not preserve npm script env expansion):
+
+- `pnpm exec docusaurus serve -h 0.0.0.0 -p $PORT`
+- `npx serve -s build -l $PORT`
 
 Flow:
 
