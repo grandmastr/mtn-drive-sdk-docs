@@ -2,38 +2,47 @@
 title: React Native Quickstart
 ---
 
-This guide is for the team integrating the React Native SDK into the MTN host app.
+Set up `@pipeopshq/mtn-rn-sdk` in a React Native app, verify the integration, and run your first production-ready SDK flows.
 
-## Install
+## Prerequisites
+
+- React Native app running on iOS or Android
+- Host-app sign-in flow that can supply an MTN access token
+- Persistent storage for tokens and device ID (for example, AsyncStorage)
+- A file adapter implementation for metadata, hashing, and uploads
+
+## 1) Install
 
 ```bash
 pnpm add @pipeopshq/mtn-rn-sdk@next
 ```
 
-## Integration Story
+Optional storage helper:
 
-1. MTN host app signs in the user and gets the MTN user access token.
-2. Your `tokenStore.getTokens()` returns that token as `accessToken`.
-3. You call SDK methods from `sdk.client.*`.
-4. SDK exchanges MTN token to local API session internally before protected calls.
-5. If auth state is invalid, SDK calls `tokenStore.clear()` so the host app can reset session state.
+```bash
+pnpm add @react-native-async-storage/async-storage
+```
 
-## Configure The Client
+## 2) Configure
 
-Use this complete example if you want a concrete starting point.
+Create the required adapters (`tokenStore`, `deviceIdProvider`, `fileAdapter`).
 
 ```ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createRNClient, type FileAdapter, type RnTokenStore } from '@pipeopshq/mtn-rn-sdk';
+import type { FileAdapter, RnTokenStore } from '@pipeopshq/mtn-rn-sdk';
 
 const TOKEN_KEY = 'mtn_sdk_tokens';
 const DEVICE_ID_KEY = 'mtn_sdk_device_id';
 
-const tokenStore: RnTokenStore = {
+type StoredTokens = {
+  accessToken: string | null;
+  refreshToken?: string | null;
+};
+
+export const tokenStore: RnTokenStore = {
   async getTokens() {
     const raw = await AsyncStorage.getItem(TOKEN_KEY);
-    if (!raw) return { accessToken: null, refreshToken: null };
-    return JSON.parse(raw) as { accessToken: string | null; refreshToken?: string | null };
+    return raw ? (JSON.parse(raw) as StoredTokens) : null;
   },
   async setTokens(tokens) {
     await AsyncStorage.setItem(TOKEN_KEY, JSON.stringify(tokens));
@@ -43,96 +52,175 @@ const tokenStore: RnTokenStore = {
   },
 };
 
-const deviceIdProvider = {
+export const deviceIdProvider = {
   async getDeviceId() {
     const existing = await AsyncStorage.getItem(DEVICE_ID_KEY);
     if (existing) return existing;
+
     const created = `rn-device-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     await AsyncStorage.setItem(DEVICE_ID_KEY, created);
     return created;
   },
 };
 
-const inferMimeType = (uri: string): string => {
-  if (uri.endsWith('.jpg') || uri.endsWith('.jpeg')) return 'image/jpeg';
-  if (uri.endsWith('.png')) return 'image/png';
-  if (uri.endsWith('.heic')) return 'image/heic';
-  return 'application/octet-stream';
-};
-
-const fileAdapter: FileAdapter = {
+export const fileAdapter: FileAdapter = {
   async getFileInfo(uri) {
-    const localFile = await fetch(uri);
-    if (!localFile.ok) throw new Error(`Cannot open file at ${uri}`);
-    const blob = await localFile.blob();
+    const source = await fetch(uri);
+    if (!source.ok) throw new Error(`Cannot open file: ${uri}`);
+
+    const blob = await source.blob();
     return {
       size: blob.size,
-      mimeType: blob.type || inferMimeType(uri),
+      mimeType: blob.type || 'application/octet-stream',
       filename: uri.split('/').pop(),
     };
   },
+
   async computeSha256(uri) {
-    // Implement with your preferred RN hashing utility and return lowercase 64-char hex.
-    // Example expected return: "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+    // Replace with your RN hash implementation.
+    // Must return lowercase 64-char SHA-256 hex string.
     throw new Error(`computeSha256 not implemented for ${uri}`);
   },
+
   async upload({ uri, uploadUrl, headers, range }) {
     const source = await fetch(uri);
-    if (!source.ok) throw new Error(`Cannot read file for upload at ${uri}`);
-    const sourceBlob = await source.blob();
-    const uploadBody = range
-      ? sourceBlob.slice(range.start, range.endExclusive)
-      : sourceBlob;
+    if (!source.ok) throw new Error(`Cannot read file: ${uri}`);
 
-    const uploadResponse = await fetch(uploadUrl, {
+    const blob = await source.blob();
+    const body = range ? blob.slice(range.start, range.endExclusive) : blob;
+
+    const response = await fetch(uploadUrl, {
       method: 'PUT',
       headers,
-      body: uploadBody,
+      body,
     });
-    if (!uploadResponse.ok) {
-      throw new Error(`Upload failed with status ${uploadResponse.status}`);
+
+    if (!response.ok) {
+      throw new Error(`Upload failed with status ${response.status}`);
     }
 
     return {
-      byteSize: uploadBody.size,
-      etag: uploadResponse.headers.get('etag') ?? undefined,
+      byteSize: body.size,
+      etag: response.headers.get('etag') ?? undefined,
     };
   },
 };
+```
 
-const sdk = createRNClient({
+File adapter implementation details (range behavior, ETag requirements, and failure rules) are documented in [React Native Required Interfaces](/docs/rn-interfaces#3-fileadapter).
+
+## 3) Initialize
+
+Create and export the SDK client.
+
+```ts
+import { createRNClient } from '@pipeopshq/mtn-rn-sdk';
+import { tokenStore, deviceIdProvider, fileAdapter } from './sdk-adapters';
+
+export const sdk = createRNClient({
   tokenStore,
   deviceIdProvider,
   fileAdapter,
 });
-
-await sdk.client.sessions.list();
 ```
 
-## What `fileAdapter` Is
+Store the MTN token after host-app sign-in:
 
-`fileAdapter` is the SDK's bridge into your app's file system and upload stack.
+```ts
+import { tokenStore } from './sdk-adapters';
 
-- `getFileInfo(uri)`: tells SDK the file size, name, and mime type.
-- `computeSha256(uri)`: gives SDK a stable content hash for dedupe and upload session negotiation.
-- `upload(...)`: performs the actual PUT upload to the URL the SDK provides (full file or byte range).
+export const onHostAppSignedIn = async (mtnAccessToken: string) => {
+  await tokenStore.setTokens({
+    accessToken: mtnAccessToken,
+    refreshToken: null,
+  });
+};
+```
 
-Without `fileAdapter`, photo backup methods cannot inspect files or upload bytes.
+## 4) Verify
 
-## Required Contracts
+Run this once during app bootstrap. It verifies auth, reads usage, and fetches the first drive page.
 
-- `tokenStore.getTokens()` must return MTN user token in `accessToken`.
-- `tokenStore.clear()` must remove local auth state on device.
-- `deviceIdProvider.getDeviceId()` returns stable device id used for device-aware flows.
-- `fileAdapter` handles file metadata, hashing, and upload for photo backup.
+```ts
+import { sdk } from './sdk-client';
 
-## Token Source
+export const verifySdkSetup = async () => {
+  const sessions = await sdk.client.sessions.list();
+  const summary = await sdk.client.storage.summary();
+  const drivePage = await sdk.client.drive.listItems({ limit: 20 });
 
-Use the same environment variable used by the web example: `MTN_ACCESS_TOKEN`.
+  return {
+    sessionsCount: sessions.length,
+    summary,
+    drivePage,
+  };
+};
+```
 
-## Next Step
+If verification fails with `AuthExchangeError` or `AuthError`, clear host-app auth state and route the user to sign-in.
 
-Read these two pages next:
+## 5) Next steps
 
-- `React Native Required Interfaces`: what you must implement in the host app.
-- `React Native SDK Methods Reference`: every `sdk.client.*` method, request format, and response format.
+- Build file browsing and search with `drive.listItems()` + `drive.search()`
+- Add sharing with `sharing.createShare()`
+- Add trash controls using `bin` methods
+- Add media backup with `photoBackupUploadManager.backupAsset()`
+
+### Sharing flow (Optional)
+
+```ts
+export const createLinkShare = async (itemId: string) => {
+  return sdk.client.sharing.createShare({
+    itemId,
+    permission: 'VIEW',
+    targetType: 'LINK',
+  });
+};
+```
+
+### Media backup flow (Optional)
+
+```ts
+export const backupAsset = async (uri: string) => {
+  return sdk.photoBackupUploadManager.backupAsset({
+    uri,
+    filename: 'camera-image.jpg',
+    mimeType: 'image/jpeg',
+    capturedAt: new Date().toISOString(),
+    onProgress: ({ uploadedBytes, totalBytes }) => {
+      console.log('backup progress', uploadedBytes, totalBytes);
+    },
+  });
+};
+```
+
+### Error mapping pattern (Optional)
+
+```ts
+export const toDisplayError = (error: unknown) => {
+  if (!(error instanceof Error)) {
+    return { type: 'UnknownError', message: 'Unknown error' };
+  }
+
+  const withMeta = error as Error & {
+    status?: number;
+    code?: string;
+    details?: unknown;
+  };
+
+  return {
+    type: error.name,
+    message: error.message,
+    status: withMeta.status,
+    code: withMeta.code,
+    details: withMeta.details,
+  };
+};
+```
+
+## Related pages
+
+- [React Native Required Interfaces](/docs/rn-interfaces)
+- [React Native SDK Methods Reference](/docs/rn-sdk-methods-reference)
+- [Error Handling and Retry Playbook](/docs/error-retry-matrix)
+- [React Native Troubleshooting](/docs/rn-troubleshooting)

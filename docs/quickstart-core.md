@@ -26,5 +26,5 @@ const sessions = await client.sessions.list();
 ## Behavior summary
 
 - `getAccessToken()` returns MTN token from the MTN app.
-- SDK handles auth/session handshake internally before protected calls.
+- SDK handles auth/session handshake automatically before protected calls.
 - On auth failure, SDK surfaces typed auth errors and clears state when configured.

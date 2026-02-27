@@ -12,7 +12,7 @@ This portal is the primary onboarding guide for teams integrating:
 ### What the SDK does
 
 - Accepts an MTN access token from the MTN app auth layer.
-- Manages auth/session handshake internally for protected operations.
+- Manages auth/session handshake automatically for protected operations.
 - Exposes typed modules for sessions, drive, sharing, bin, photo backup, and storage.
 - Provides typed error surfaces and retry behavior.
 
