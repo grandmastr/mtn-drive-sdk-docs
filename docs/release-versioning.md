@@ -4,7 +4,6 @@ title: Release Channels and Versioning
 
 ## Package naming
 
-- `@pipeopshq/mtn-core`
 - `@pipeopshq/mtn-rn-sdk`
 
 ## Channel
@@ -23,5 +22,4 @@ title: Release Channels and Versioning
 
 ```bash
 pnpm add @pipeopshq/mtn-rn-sdk@next
-pnpm add @pipeopshq/mtn-core@next
 ```

@@ -8,8 +8,9 @@ Set up `@pipeopshq/mtn-rn-sdk` in a React Native app, verify the integration, an
 
 - React Native app running on iOS or Android
 - Host-app sign-in flow that can supply an MTN access token
-- Persistent storage for tokens and device ID (for example, AsyncStorage)
-- A file adapter implementation for metadata, hashing, and uploads
+- Persistent storage for tokens (for example, AsyncStorage)
+- Device ID persistence only if you will use photo backup routes
+- A file adapter only if you will use `photoBackupUploadManager`
 
 ## 1) Install
 
@@ -25,14 +26,13 @@ pnpm add @react-native-async-storage/async-storage
 
 ## 2) Configure
 
-Create the required adapters (`tokenStore`, `deviceIdProvider`, `fileAdapter`).
+Create the required baseline adapter (`tokenStore`).
 
 ```ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { FileAdapter, RnTokenStore } from '@pipeopshq/mtn-rn-sdk';
+import type { RnTokenStore } from '@pipeopshq/mtn-rn-sdk';
 
 const TOKEN_KEY = 'mtn_sdk_tokens';
-const DEVICE_ID_KEY = 'mtn_sdk_device_id';
 
 type StoredTokens = {
   accessToken: string | null;
@@ -51,6 +51,15 @@ export const tokenStore: RnTokenStore = {
     await AsyncStorage.removeItem(TOKEN_KEY);
   },
 };
+```
+
+If you plan to use photo backup APIs, add `deviceIdProvider` and `fileAdapter` as optional backup-only adapters:
+
+```ts
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { FileAdapter } from '@pipeopshq/mtn-rn-sdk';
+
+const DEVICE_ID_KEY = 'mtn_sdk_device_id';
 
 export const deviceIdProvider = {
   async getDeviceId() {
@@ -107,7 +116,7 @@ export const fileAdapter: FileAdapter = {
 };
 ```
 
-File adapter implementation details (range behavior, ETag requirements, and failure rules) are documented in [React Native Required Interfaces](/docs/rn-interfaces#3-fileadapter).
+File adapter implementation details (range behavior, ETag requirements, and failure rules) are documented in [React Native Required Interfaces](/docs/rn-interfaces#3-fileadapter-upload-manager-only).
 
 ## 3) Initialize
 
@@ -115,7 +124,18 @@ Create and export the SDK client.
 
 ```ts
 import { createRNClient } from '@pipeopshq/mtn-rn-sdk';
-import { tokenStore, deviceIdProvider, fileAdapter } from './sdk-adapters';
+import { tokenStore } from './sdk-adapters';
+
+export const sdk = createRNClient({
+  tokenStore,
+});
+```
+
+Add the backup-only adapters only if you will use photo backup:
+
+```ts
+import { createRNClient } from '@pipeopshq/mtn-rn-sdk';
+import { deviceIdProvider, fileAdapter, tokenStore } from './sdk-adapters';
 
 export const sdk = createRNClient({
   tokenStore,
@@ -123,6 +143,17 @@ export const sdk = createRNClient({
   fileAdapter,
 });
 ```
+
+`createRNClient(...)` returns both:
+
+- `sdk.client` for the typed module methods (`sessions`, `drive`, `sharing`, `bin`, `photoBackup`, `storage`)
+- `sdk.photoBackupUploadManager` for the one-call RN media backup helper
+
+React Native apps should use only `@pipeopshq/mtn-rn-sdk` imports.
+
+`deviceIdProvider` is required only when you call `sdk.client.photoBackup.*`.
+
+`fileAdapter` is required only when you call `sdk.photoBackupUploadManager.backupAsset(...)`.
 
 Store the MTN token after host-app sign-in:
 
@@ -205,7 +236,6 @@ export const toDisplayError = (error: unknown) => {
   const withMeta = error as Error & {
     status?: number;
     code?: string;
-    details?: unknown;
   };
 
   return {
@@ -213,7 +243,6 @@ export const toDisplayError = (error: unknown) => {
     message: error.message,
     status: withMeta.status,
     code: withMeta.code,
-    details: withMeta.details,
   };
 };
 ```

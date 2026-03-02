@@ -34,6 +34,7 @@ Diagnose common React Native SDK integration failures quickly with symptom-first
 
 - Photo backup session creation fails
 - Multipart upload cannot proceed
+- Error includes `photo backup routes require deviceIdProvider`
 
 ### Checks
 
@@ -52,6 +53,7 @@ Diagnose common React Native SDK integration failures quickly with symptom-first
 ### Symptoms
 
 - Error includes: `Multipart upload adapter must return etag`
+- Error includes: `photoBackupUploadManager requires fileAdapter`
 
 ### Checks
 
@@ -62,7 +64,8 @@ Diagnose common React Native SDK integration failures quickly with symptom-first
 
 1. Return `etag` from upload response headers.
 2. Keep `byteSize` accurate for each chunk.
-3. Retry `photoBackupUploadManager.backupAsset(...)`.
+3. Ensure `createRNClient(...)` received a valid `fileAdapter`.
+4. Retry `photoBackupUploadManager.backupAsset(...)`.
 
 ## Upload progress stalls after app resume
 

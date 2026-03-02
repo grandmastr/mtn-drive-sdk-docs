@@ -22,7 +22,6 @@ const sidebars: SidebarsConfig = {
         'error-retry-matrix',
       ],
     },
-    'quickstart-core',
     'example',
     'release-versioning',
   ],

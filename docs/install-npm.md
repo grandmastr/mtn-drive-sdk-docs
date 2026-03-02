@@ -6,14 +6,14 @@ title: Install from npm
 
 ```bash
 pnpm add @pipeopshq/mtn-rn-sdk@next
-pnpm add @pipeopshq/mtn-core@next
 ```
+
+`@pipeopshq/mtn-rn-sdk` is the only package React Native apps need to install directly.
 
 ## 2) Confirm resolution
 
 ```bash
 pnpm why @pipeopshq/mtn-rn-sdk
-pnpm why @pipeopshq/mtn-core
 ```
 
 ## Notes

@@ -86,7 +86,6 @@ For non-validation failures, log:
 - `error.message`
 - `error.status` if present
 - `error.code` if present
-- `error.details` if present and safe
 - request correlation identifiers if safe
 
 ## Minimal global mapper
@@ -100,7 +99,6 @@ export const toAppError = (error: unknown) => {
   const withMeta = error as Error & {
     status?: number;
     code?: string;
-    details?: unknown;
   };
 
   return {
@@ -108,7 +106,6 @@ export const toAppError = (error: unknown) => {
     message: error.message,
     status: withMeta.status,
     code: withMeta.code,
-    details: withMeta.details,
   };
 };
 ```

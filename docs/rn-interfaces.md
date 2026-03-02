@@ -2,7 +2,7 @@
 title: React Native Required Interfaces
 ---
 
-Implement the required host-app adapters correctly so the SDK can manage auth, device identity, file metadata, hashing, and upload transport reliably.
+Implement the host-app adapters correctly so the SDK can manage auth, device identity, file metadata, hashing, and upload transport reliably.
 
 ## Prerequisites
 
@@ -68,9 +68,11 @@ export const tokenStore = {
 };
 ```
 
-## 2) `deviceIdProvider`
+## 2) `deviceIdProvider` (photo backup only)
 
 Use `deviceIdProvider` to return a stable per-install identifier.
+
+This adapter is optional unless you call `sdk.client.photoBackup.*`. Photo backup routes throw a clear runtime error if you omit it and then call those methods.
 
 ### Signature
 
@@ -111,9 +113,11 @@ export const deviceIdProvider = {
 };
 ```
 
-## 3) `fileAdapter`
+## 3) `fileAdapter` (upload manager only)
 
 Use `fileAdapter` to provide file metadata, content hashing, and byte upload operations.
+
+This adapter is optional unless you call `sdk.photoBackupUploadManager.backupAsset(...)`. The upload manager throws a clear runtime error if you omit it and then call that helper.
 
 ### Plain-English meaning
 
@@ -131,7 +135,7 @@ You can think of it as three required capabilities the SDK asks your app to prov
 2. Give me a stable content fingerprint (`computeSha256`).
 3. Upload this file (or byte range) to this URL (`upload`).
 
-Without `fileAdapter`, the SDK cannot read device files or perform RN-specific upload I/O.
+Without `fileAdapter`, the upload manager cannot read device files or perform RN-specific upload I/O.
 
 ### Signature
 

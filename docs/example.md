@@ -8,10 +8,9 @@ It covers:
 
 1. installation
 2. token storage
-3. device id provider
-4. `fileAdapter`
-5. `createRNClient(...)`
-6. calling SDK methods across modules
+3. optional photo-backup adapters
+4. `createRNClient(...)`
+5. calling SDK methods across modules
 
 ## 1) Install
 
@@ -21,12 +20,13 @@ pnpm add @pipeopshq/mtn-rn-sdk@next @react-native-async-storage/async-storage
 
 ## 2) Build the host-app adapters
 
+Start with the required baseline adapter:
+
 ```ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { FileAdapter, RnTokenStore } from '@pipeopshq/mtn-rn-sdk';
+import type { RnTokenStore } from '@pipeopshq/mtn-rn-sdk';
 
 const TOKEN_KEY = 'mtn_sdk_tokens';
-const DEVICE_ID_KEY = 'mtn_sdk_device_id';
 
 type StoredTokens = { accessToken: string | null; refreshToken?: string | null };
 
@@ -43,6 +43,15 @@ export const tokenStore: RnTokenStore = {
     await AsyncStorage.removeItem(TOKEN_KEY);
   },
 };
+```
+
+If your app will use photo backup, add the backup-only adapters:
+
+```ts
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { FileAdapter } from '@pipeopshq/mtn-rn-sdk';
+
+const DEVICE_ID_KEY = 'mtn_sdk_device_id';
 
 export const deviceIdProvider = {
   async getDeviceId() {
@@ -107,6 +116,19 @@ export const fileAdapter: FileAdapter = {
 ```
 
 ## 3) Create SDK client
+
+Baseline integration:
+
+```ts
+import { createRNClient } from '@pipeopshq/mtn-rn-sdk';
+import { tokenStore } from './sdk-adapters';
+
+export const sdk = createRNClient({
+  tokenStore,
+});
+```
+
+If you will use photo backup:
 
 ```ts
 import { createRNClient } from '@pipeopshq/mtn-rn-sdk';
@@ -204,7 +226,6 @@ export const toDisplayError = (error: unknown) => {
   const withMeta = error as Error & {
     status?: number;
     code?: string;
-    details?: unknown;
   };
 
   return {
@@ -212,7 +233,6 @@ export const toDisplayError = (error: unknown) => {
     message: error.message,
     status: withMeta.status,
     code: withMeta.code,
-    details: withMeta.details,
   };
 };
 ```

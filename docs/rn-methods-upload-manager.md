@@ -7,15 +7,17 @@ Use the high-level RN upload manager to run complete photo backup uploads (hash,
 ## Prerequisites
 
 - SDK client created with `createRNClient(...)`
-- `fileAdapter` fully implemented, including multipart `etag` support
+- `fileAdapter` configured in `createRNClient(...)` and fully implemented, including multipart `etag` support
 - `photoBackup` module available through authenticated client
+
+`sdk.photoBackupUploadManager` is the high-level helper for one asset at a time. It wraps the low-level `sdk.client.photoBackup` upload-session calls so you do not have to call `createSession`, `refreshSession`, `confirmPart`, and `completeSession` manually for the common path.
 
 ## Module overview
 
+The RN SDK exposes this helper at `sdk.photoBackupUploadManager`:
+
 ```ts
-class ReactNativePhotoBackupUploadManager {
-  backupAsset(input: BackupAssetInput): Promise<BackupAssetResult>;
-}
+sdk.photoBackupUploadManager.backupAsset(input: BackupAssetInput): Promise<BackupAssetResult>
 ```
 
 ### `photoBackupUploadManager.backupAsset(input)`
@@ -64,6 +66,7 @@ backupAsset(input: BackupAssetInput): Promise<BackupAssetResult>
 #### Errors and handling
 
 - `Error('Invalid upload session response...')`: upload session response missing required fields; treat as non-retryable integration failure and log payload context.
+- `Error('photoBackupUploadManager requires fileAdapter...')`: upload manager was constructed without `fileAdapter`; add `fileAdapter` to `createRNClient(...)` before using this helper.
 - `Error('Multipart upload adapter must return etag...')`: `fileAdapter.upload` did not return part ETag; fix adapter implementation.
 - `AuthError` or `AuthExchangeError`: clear host auth and force sign-in before retry.
 - `NetworkError`: safe to retry `backupAsset` from queue/orchestrator.

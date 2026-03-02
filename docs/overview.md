@@ -4,9 +4,8 @@ title: Overview
 
 ## MTN Drive SDK
 
-This portal is the primary onboarding guide for teams integrating:
+This portal is the primary onboarding guide for teams integrating the React Native package:
 
-- `@pipeopshq/mtn-core`
 - `@pipeopshq/mtn-rn-sdk`
 
 ### What the SDK does
@@ -20,6 +19,6 @@ This portal is the primary onboarding guide for teams integrating:
 
 - Installation from npm.
 - End-to-end React Native integration example.
-- Core and React Native quickstarts.
+- React Native quickstart.
 - Module-level method maps.
 - Error handling behavior.

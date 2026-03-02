@@ -69,8 +69,8 @@ const config: Config = {
               to: '/docs/overview',
             },
             {
-              label: 'Quickstart (Core)',
-              to: '/docs/quickstart-core',
+              label: 'Quickstart (React Native)',
+              to: '/docs/quickstart-react-native',
             },
           ],
         },
