@@ -18,6 +18,8 @@ Set up `@pipeopshq/mtn-rn-sdk` in a React Native app, verify the integration, an
 pnpm add @pipeopshq/mtn-rn-sdk@next
 ```
 
+`1.0.0` is currently published on the `next` dist-tag. `latest` still points to `0.2.0`, so keep using `@next` for this quickstart.
+
 Optional storage helper:
 
 ```bash

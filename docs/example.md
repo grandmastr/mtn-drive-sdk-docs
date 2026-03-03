@@ -18,6 +18,8 @@ It covers:
 pnpm add @pipeopshq/mtn-rn-sdk@next @react-native-async-storage/async-storage
 ```
 
+`1.0.0` is currently published on the `next` dist-tag. `latest` still points to `0.2.0`, so this example keeps the explicit `@next` install.
+
 ## 2) Build the host-app adapters
 
 Start with the required baseline adapter:
