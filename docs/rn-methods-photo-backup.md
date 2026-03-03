@@ -8,11 +8,11 @@ Register devices, orchestrate media upload sessions, confirm parts, and manage p
 
 - SDK client created with `createRNClient(...)`
 - `deviceIdProvider` configured in `createRNClient(...)`
-- For upload orchestration, see [RN Methods: Upload Manager](/docs/rn-methods-upload-manager)
+- For the default task-based upload path, see [RN Methods: Managed Uploads](/docs/rn-methods-managed-uploads)
 
-These methods are available through `sdk.client.photoBackup`. They are the low-level per-asset upload and media-management methods exposed by the React Native client.
+These methods are available through `sdk.client.photoBackup`. They are the low-level per-asset upload-session and media-management methods exposed by the React Native client.
 
-`fileAdapter` is not required for these low-level methods. It is only required for `sdk.photoBackupUploadManager.backupAsset(...)`.
+`fileAdapter` is not required for these low-level methods. The default task-based path `sdk.uploads.backupAsset(...)` does require it.
 
 ## Module overview
 

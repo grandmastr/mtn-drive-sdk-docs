@@ -17,7 +17,7 @@ const sidebars: SidebarsConfig = {
         'rn-methods-bin',
         'rn-methods-photo-backup',
         'rn-methods-storage',
-        'rn-methods-upload-manager',
+        'rn-methods-managed-uploads',
         'rn-troubleshooting',
         'error-retry-matrix',
       ],
