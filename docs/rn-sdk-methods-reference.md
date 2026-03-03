@@ -2,7 +2,7 @@
 title: React Native SDK Methods Reference
 ---
 
-Find each React Native SDK method by module, understand when to call it, and implement calls with request/response and error-handling guidance.
+Find each React Native SDK method by module, start from the default managed upload path, and drop down to the lower-level modules only when you need protocol-level control.
 
 ## Prerequisites
 
@@ -25,13 +25,14 @@ Use this page as the method index. Each module page documents every method with 
 
 | Module | Methods | Page |
 | - | - | - |
+| `uploads` | 6 | [Managed upload methods](/docs/rn-methods-managed-uploads) |
+| `uploadTask` | 6 | [Managed upload methods](/docs/rn-methods-managed-uploads) |
 | `sessions` | 3 | [Sessions methods](/docs/rn-methods-sessions) |
 | `drive` | 28 | [Drive methods](/docs/rn-methods-drive) |
 | `sharing` | 11 | [Sharing methods](/docs/rn-methods-sharing) |
 | `bin` | 6 | [Bin methods](/docs/rn-methods-bin) |
-| `photoBackup` | 13 | [Photo backup methods](/docs/rn-methods-photo-backup) |
+| `photoBackup` | 13 | [Photo backup methods (advanced)](/docs/rn-methods-photo-backup) |
 | `storage` | 2 | [Storage methods](/docs/rn-methods-storage) |
-| `photoBackupUploadManager` | 1 | [Upload manager method](/docs/rn-methods-upload-manager) |
 
 ## Common types used across modules
 
@@ -57,16 +58,26 @@ interface CursorListResponse<T> {
 | `RateLimitError` | request throttled | back off and retry |
 | `NetworkError` | transport/connectivity failure | retry with user feedback |
 | `SdkError` | normalized SDK failure | show generic error and log metadata |
+| `UploadTaskError` | terminal managed upload failure or cancel | inspect `code`, decide whether to retry as a new task |
 
 ## Typical SDK integration sequences
 
 ### App bootstrap
 
-1. `sessions.list()`
-2. `storage.summary()`
-3. `drive.listItems({ limit: 20 })`
+1. `await sdk.uploads.ready`
+2. `sessions.list()`
+3. `storage.summary()`
+4. `uploads.getActiveTasks()`
 
-### File flow
+### Managed upload flow (default)
+
+1. `uploads.putFile(...)` or `uploads.backupAsset(...)`
+2. `uploadTask.on('state_changed', ...)`
+3. Optional controls: `uploadTask.pause()` / `uploadTask.resume()` / `uploadTask.cancel()`
+4. Completion: `await uploadTask`
+5. Restore after restart: `await sdk.uploads.ready` then `uploads.getActiveTasks()`
+
+### File flow (without manual upload orchestration)
 
 1. `drive.listItems(...)`
 2. `drive.search(...)`
@@ -74,12 +85,19 @@ interface CursorListResponse<T> {
 4. `drive.getDownloadUrl(itemId)`
 5. `sharing.createShare(...)`
 
-### Upload flow
+### Advanced manual drive upload flow
 
 1. `drive.createUploadSession(...)` or `drive.createMultipartSession(...)`
 2. Upload bytes to returned URL(s)
 3. Multipart: `drive.createMultipartPartUrl(...)` + `drive.completeMultipartSession(...)`
 4. `drive.completeUpload({ fileId })`
+
+### Advanced photo backup flow
+
+1. `photoBackup.registerDevice(...)`
+2. `photoBackup.createSession(...)`
+3. `photoBackup.refreshSession(...)` or `photoBackup.reconcileSession(...)`
+4. `photoBackup.confirmPart(...)` + `photoBackup.completeSession(...)`
 
 ### Trash flow
 
@@ -87,13 +105,8 @@ interface CursorListResponse<T> {
 2. `bin.list(...)` or `drive.listTrash(...)`
 3. `bin.restore(...)` or purge methods
 
-### Photo backup flow
-
-1. `photoBackup.registerDevice(...)`
-2. `photoBackupUploadManager.backupAsset(...)`
-3. Recovery: `photoBackup.refreshSession(...)` + `photoBackup.reconcileSession(...)`
-
 ## Related pages
 
+- [RN Methods: Managed Uploads](/docs/rn-methods-managed-uploads)
 - [Error Handling and Retry Playbook](/docs/error-retry-matrix)
 - [React Native Troubleshooting](/docs/rn-troubleshooting)

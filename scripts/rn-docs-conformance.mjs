@@ -19,7 +19,7 @@ const methodDocFiles = [
   path.join(docsRoot, 'docs', 'rn-methods-bin.md'),
   path.join(docsRoot, 'docs', 'rn-methods-photo-backup.md'),
   path.join(docsRoot, 'docs', 'rn-methods-storage.md'),
-  path.join(docsRoot, 'docs', 'rn-methods-upload-manager.md'),
+  path.join(docsRoot, 'docs', 'rn-methods-managed-uploads.md'),
 ];
 
 const pagesRequiringPrereqs = [
@@ -62,6 +62,16 @@ const moduleSpecs = [
     iface: 'StorageModule',
     prefix: 'storage',
   },
+  {
+    file: path.join(sdkRoot, 'packages', 'react-native-sdk', 'src', 'types.ts'),
+    iface: 'ManagedUploads',
+    prefix: 'uploads',
+  },
+  {
+    file: path.join(sdkRoot, 'packages', 'react-native-sdk', 'src', 'types.ts'),
+    iface: 'UploadTask',
+    prefix: 'uploadTask',
+  },
 ];
 
 const requiredMethodSections = [
@@ -100,7 +110,7 @@ const requiredHubLinks = [
   '/docs/rn-methods-bin',
   '/docs/rn-methods-photo-backup',
   '/docs/rn-methods-storage',
-  '/docs/rn-methods-upload-manager',
+  '/docs/rn-methods-managed-uploads',
 ];
 
 const bannedPatterns = [
@@ -150,33 +160,6 @@ const collectInterfaceMethods = (spec) => {
   return results;
 };
 
-const collectUploadManagerMethod = () => {
-  const file = path.join(sdkRoot, 'packages', 'react-native-sdk', 'src', 'upload-manager.ts');
-  const source = read(file);
-  const sourceFile = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
-  const methods = [];
-
-  const visit = (node) => {
-    if (ts.isClassDeclaration(node) && node.name?.text === 'ReactNativePhotoBackupUploadManager') {
-      for (const member of node.members) {
-        if (!ts.isMethodDeclaration(member) || !member.name) continue;
-        const methodName = member.name.getText(sourceFile);
-        if (methodName !== 'backupAsset') continue;
-        const params = member.parameters.map((param) => {
-          const pName = param.name.getText(sourceFile);
-          const optional = param.questionToken ? '?' : '';
-          return `${pName}${optional}`;
-        });
-        methods.push(normalizeHeading(`photoBackupUploadManager.${methodName}(${params.join(', ')})`));
-      }
-    }
-    ts.forEachChild(node, visit);
-  };
-
-  visit(sourceFile);
-  return methods;
-};
-
 const parseMethodSections = (content) => {
   const matches = [...content.matchAll(/^#{3,4}\s+`([^`]+)`\s*$/gm)];
   const sections = [];
@@ -222,10 +205,7 @@ for (const file of pagesRequiringPrereqs) {
 }
 ok('Prerequisites and subtitle checks passed.');
 
-const expected = [
-  ...moduleSpecs.flatMap(collectInterfaceMethods),
-  ...collectUploadManagerMethod(),
-].sort();
+const expected = moduleSpecs.flatMap(collectInterfaceMethods).sort();
 
 const seen = new Map();
 for (const file of methodDocFiles) {

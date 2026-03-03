@@ -2,39 +2,38 @@
 title: React Native Quickstart
 ---
 
-Set up `@pipeopshq/mtn-rn-sdk` in a React Native app, verify the integration, and run your first production-ready SDK flows.
+Set up `@pipeopshq/mtn-rn-sdk` in a React Native app using the default managed `sdk.uploads.*` path first, then layer in low-level modules only where you need custom control.
 
 ## Prerequisites
 
 - React Native app running on iOS or Android
 - Host-app sign-in flow that can supply an MTN access token
-- Persistent storage for tokens (for example, AsyncStorage)
-- Device ID persistence only if you will use photo backup routes
-- A file adapter only if you will use `photoBackupUploadManager`
+- Persistent storage for tokens and upload task state (for example, AsyncStorage)
+- A file layer that can read local URIs, hash bytes, and upload ranged chunks
+- Device ID persistence only if you will use managed photo backup or low-level `sdk.client.photoBackup.*`
 
 ## 1) Install
 
 ```bash
-pnpm add @pipeopshq/mtn-rn-sdk@next
+pnpm add @pipeopshq/mtn-rn-sdk@next @react-native-async-storage/async-storage
 ```
 
-`1.0.0` is currently published on the `next` dist-tag. `latest` still points to `0.2.0`, so keep using `@next` for this quickstart.
-
-Optional storage helper:
-
-```bash
-pnpm add @react-native-async-storage/async-storage
-```
+`1.0.0` is currently published on the `next` dist-tag. `latest` still points to `0.2.0`, so keep using `@next` for the managed upload path.
 
 ## 2) Configure
 
-Create the required baseline adapter (`tokenStore`).
+Create the required baseline adapters:
 
 ```ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { RnTokenStore } from '@pipeopshq/mtn-rn-sdk';
+import {
+  createAsyncStorageUploadTaskStore,
+  type FileAdapter,
+  type RnTokenStore,
+} from '@pipeopshq/mtn-rn-sdk';
 
 const TOKEN_KEY = 'mtn_sdk_tokens';
+const DEVICE_ID_KEY = 'mtn_sdk_device_id';
 
 type StoredTokens = {
   accessToken: string | null;
@@ -53,15 +52,8 @@ export const tokenStore: RnTokenStore = {
     await AsyncStorage.removeItem(TOKEN_KEY);
   },
 };
-```
 
-If you plan to use photo backup APIs, add `deviceIdProvider` and `fileAdapter` as optional backup-only adapters:
-
-```ts
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { FileAdapter } from '@pipeopshq/mtn-rn-sdk';
-
-const DEVICE_ID_KEY = 'mtn_sdk_device_id';
+export const uploadTaskStore = createAsyncStorageUploadTaskStore(AsyncStorage);
 
 export const deviceIdProvider = {
   async getDeviceId() {
@@ -88,12 +80,12 @@ export const fileAdapter: FileAdapter = {
   },
 
   async computeSha256(uri) {
-    // Replace with your RN hash implementation.
-    // Must return lowercase 64-char SHA-256 hex string.
+    // Replace with your RN hashing utility.
+    // Must return lowercase 64-char SHA-256 hex.
     throw new Error(`computeSha256 not implemented for ${uri}`);
   },
 
-  async upload({ uri, uploadUrl, headers, range }) {
+  async upload({ uri, uploadUrl, headers, range, signal }) {
     const source = await fetch(uri);
     if (!source.ok) throw new Error(`Cannot read file: ${uri}`);
 
@@ -104,6 +96,7 @@ export const fileAdapter: FileAdapter = {
       method: 'PUT',
       headers,
       body,
+      signal,
     });
 
     if (!response.ok) {
@@ -118,44 +111,47 @@ export const fileAdapter: FileAdapter = {
 };
 ```
 
-File adapter implementation details (range behavior, ETag requirements, and failure rules) are documented in [React Native Required Interfaces](/docs/rn-interfaces#3-fileadapter-upload-manager-only).
+`fileAdapter` and `uploads.taskStore` are the required pair for the managed upload path. `deviceIdProvider` is only required when you call `sdk.uploads.backupAsset(...)` or low-level `sdk.client.photoBackup.*`.
+
+File adapter details (range handling, `AbortSignal`, `etag`, and `modifiedAtMs`) are documented in [React Native Required Interfaces](/docs/rn-interfaces).
 
 ## 3) Initialize
 
-Create and export the SDK client.
+Create and export one SDK client for the app runtime.
 
 ```ts
 import { createRNClient } from '@pipeopshq/mtn-rn-sdk';
-import { tokenStore } from './sdk-adapters';
+import { fileAdapter, tokenStore, uploadTaskStore } from './sdk-adapters';
 
 export const sdk = createRNClient({
   tokenStore,
+  fileAdapter,
+  uploads: {
+    taskStore: uploadTaskStore,
+  },
 });
 ```
 
-Add the backup-only adapters only if you will use photo backup:
+If you will use managed photo backup, add `deviceIdProvider`:
 
 ```ts
 import { createRNClient } from '@pipeopshq/mtn-rn-sdk';
-import { deviceIdProvider, fileAdapter, tokenStore } from './sdk-adapters';
+import { deviceIdProvider, fileAdapter, tokenStore, uploadTaskStore } from './sdk-adapters';
 
 export const sdk = createRNClient({
   tokenStore,
   deviceIdProvider,
   fileAdapter,
+  uploads: {
+    taskStore: uploadTaskStore,
+  },
 });
 ```
 
-`createRNClient(...)` returns both:
+`createRNClient(...)` returns:
 
-- `sdk.client` for the typed module methods (`sessions`, `drive`, `sharing`, `bin`, `photoBackup`, `storage`)
-- `sdk.photoBackupUploadManager` for the one-call RN media backup helper
-
-React Native apps should use only `@pipeopshq/mtn-rn-sdk` imports.
-
-`deviceIdProvider` is required only when you call `sdk.client.photoBackup.*`.
-
-`fileAdapter` is required only when you call `sdk.photoBackupUploadManager.backupAsset(...)`.
+- `sdk.uploads` for the default Firebase-style task-based upload flow
+- `sdk.client` for typed low-level modules (`sessions`, `drive`, `sharing`, `bin`, `photoBackup`, `storage`)
 
 Store the MTN token after host-app sign-in:
 
@@ -172,20 +168,24 @@ export const onHostAppSignedIn = async (mtnAccessToken: string) => {
 
 ## 4) Verify
 
-Run this once during app bootstrap. It verifies auth, reads usage, and fetches the first drive page.
+Run this once during app bootstrap. It restores task state, verifies auth, reads usage, and fetches the first drive page.
 
 ```ts
 import { sdk } from './sdk-client';
 
 export const verifySdkSetup = async () => {
+  await sdk.uploads.ready;
+
   const sessions = await sdk.client.sessions.list();
   const summary = await sdk.client.storage.summary();
   const drivePage = await sdk.client.drive.listItems({ limit: 20 });
+  const activeUploads = sdk.uploads.getActiveTasks();
 
   return {
     sessionsCount: sessions.length,
     summary,
     drivePage,
+    activeUploadsCount: activeUploads.length,
   };
 };
 ```
@@ -194,12 +194,46 @@ If verification fails with `AuthExchangeError` or `AuthError`, clear host-app au
 
 ## 5) Next steps
 
-- Build file browsing and search with `drive.listItems()` + `drive.search()`
-- Add sharing with `sharing.createShare()`
-- Add trash controls using `bin` methods
-- Add media backup with `photoBackupUploadManager.backupAsset()`
+- Start drive uploads with `sdk.uploads.putFile(...)`
+- Start managed photo backup with `sdk.uploads.backupAsset(...)`
+- Reattach UI after app restart with `sdk.uploads.getActiveTasks()`
+- Use `sdk.client.*` only for advanced protocol-level control
 
-### Sharing flow (Optional)
+### Drive upload (Recommended)
+
+```ts
+export const uploadFile = (uri: string, parentId: string | null) => {
+  const task = sdk.uploads.putFile({
+    uri,
+    parentId,
+  });
+
+  task.on('state_changed', (snapshot) => {
+    console.log('upload progress', snapshot.bytesTransferred, snapshot.totalBytes);
+  });
+
+  return task;
+};
+```
+
+### Managed photo backup (Optional)
+
+```ts
+export const backupAsset = (uri: string) => {
+  const task = sdk.uploads.backupAsset({
+    uri,
+    capturedAt: new Date().toISOString(),
+  });
+
+  task.on('state_changed', (snapshot) => {
+    console.log('backup progress', snapshot.bytesTransferred, snapshot.totalBytes);
+  });
+
+  return task;
+};
+```
+
+### Advanced low-level module call (Optional)
 
 ```ts
 export const createLinkShare = async (itemId: string) => {
@@ -207,22 +241,6 @@ export const createLinkShare = async (itemId: string) => {
     itemId,
     permission: 'VIEW',
     targetType: 'LINK',
-  });
-};
-```
-
-### Media backup flow (Optional)
-
-```ts
-export const backupAsset = async (uri: string) => {
-  return sdk.photoBackupUploadManager.backupAsset({
-    uri,
-    filename: 'camera-image.jpg',
-    mimeType: 'image/jpeg',
-    capturedAt: new Date().toISOString(),
-    onProgress: ({ uploadedBytes, totalBytes }) => {
-      console.log('backup progress', uploadedBytes, totalBytes);
-    },
   });
 };
 ```
@@ -252,6 +270,7 @@ export const toDisplayError = (error: unknown) => {
 ## Related pages
 
 - [React Native Required Interfaces](/docs/rn-interfaces)
+- [RN Methods: Managed Uploads](/docs/rn-methods-managed-uploads)
 - [React Native SDK Methods Reference](/docs/rn-sdk-methods-reference)
 - [Error Handling and Retry Playbook](/docs/error-retry-matrix)
 - [React Native Troubleshooting](/docs/rn-troubleshooting)

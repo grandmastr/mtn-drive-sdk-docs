@@ -2,7 +2,7 @@
 title: Error Handling and Retry Playbook
 ---
 
-Handle SDK errors predictably with user-safe retries, auth recovery, and module-specific fallback behavior.
+Handle SDK errors predictably with user-safe retries, auth recovery, and module-specific fallback behavior, including the managed upload task flow.
 
 ## Prerequisites
 
@@ -68,10 +68,17 @@ If `tokenStore.getTokens()` returns no usable `accessToken`:
 - For list/search failures, keep stale content visible with inline retry.
 - For mutation failures, show errors near action controls and preserve user input state.
 
-### Upload and Photo Backup
+### Managed uploads (default)
 
-- On multipart failure, reconcile or abort session before restarting upload.
-- If multipart part upload has no `etag`, treat as adapter implementation bug.
+- `storage/canceled`: user canceled the task; do not auto-retry, and treat the task as intentionally finished.
+- `storage/retry-limit-exceeded`: start a new task after showing retry UI.
+- `storage/session-expired`: start a new task; the old task cannot be resumed safely.
+- `storage/source-file-missing` or `storage/source-file-changed`: re-read the source file and start a new task only after the user confirms.
+- If multipart part upload has no `etag`, treat it as a `fileAdapter` implementation bug.
+
+### Advanced photo backup
+
+- On low-level multipart failure, reconcile or abort session before restarting manual upload orchestration.
 
 ### Storage
 
