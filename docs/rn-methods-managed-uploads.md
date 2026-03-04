@@ -2,7 +2,7 @@
 title: "RN Methods: Managed Uploads"
 ---
 
-Start, monitor, pause, resume, cancel, and restore Firebase-style upload tasks through the default `sdk.uploads.*` API.
+Start, monitor, pause, resume, cancel, and restore upload tasks through the default `sdk.uploads.*` API.
 
 ## Prerequisites
 

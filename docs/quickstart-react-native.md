@@ -150,7 +150,7 @@ export const sdk = createRNClient({
 
 `createRNClient(...)` returns:
 
-- `sdk.uploads` for the default Firebase-style task-based upload flow
+- `sdk.uploads` for the default task-based upload flow
 - `sdk.client` for typed low-level modules (`sessions`, `drive`, `sharing`, `bin`, `photoBackup`, `storage`)
 
 Store the MTN token after host-app sign-in:
