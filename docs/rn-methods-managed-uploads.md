@@ -2,7 +2,7 @@
 title: "RN Methods: Managed Uploads"
 ---
 
-Start, monitor, pause, resume, cancel, and restore upload tasks through the default `sdk.uploads.*` API.
+Start, watch, pause, resume, cancel, and restore file backup or photo sync tasks through the default `sdk.uploads.*` API.
 
 ## Prerequisites
 
@@ -11,7 +11,7 @@ Start, monitor, pause, resume, cancel, and restore upload tasks through the defa
 - `uploads.taskStore` configured in `createRNClient(...)`
 - `deviceIdProvider` configured only if you will call `sdk.uploads.backupAsset(...)`
 
-`sdk.uploads` is the default high-level upload surface for new integrations. Use these methods instead of the legacy one-call upload manager or the low-level manual upload-session APIs unless you need custom protocol control.
+`sdk.uploads` is the default high-level upload surface for new integrations. Use these methods first for normal file/folder backup and photo sync. Only drop to the older helper or the low-level upload APIs if you need custom control.
 
 ## Module overview
 
@@ -52,11 +52,11 @@ Call `await sdk.uploads.ready` during app bootstrap before you rely on restored 
 
 #### What this method does
 
-Starts a managed drive upload immediately and returns a live `UploadTask`.
+Starts a file backup right away and returns a live `UploadTask`.
 
 #### When to call it
 
-Call for user-initiated file uploads, attachment flows, and any drive upload that should support pause/resume/cancel and restore after app restart.
+Call when a user wants to back up a file into a folder, attach a file, or move a file into Drive and you want pause/resume/cancel plus restore after app restart.
 
 #### Signature
 
@@ -68,8 +68,8 @@ putFile(input: ManagedDriveUploadInput): UploadTask
 
 | Field | Type | Required | Default | Format/Constraints | Meaning |
 | - | - | - | - | - | - |
-| `uri` | `string` | Yes | none | valid local file URI | Source file path. |
-| `parentId` | `string \| null` | No | `null` | drive item ID | Optional destination folder. |
+| `uri` | `string` | Yes | none | valid local file URI | File to back up. |
+| `parentId` | `string \| null` | No | `null` | drive item ID | Folder to save the file in. |
 | `filename` | `string` | No | adapter-derived | non-empty string | Optional filename override. |
 | `mimeType` | `string` | No | adapter-derived | valid MIME string | Optional MIME override. |
 | `onProgress` | `(snapshot: UploadTaskSnapshot) => void` | No | none | callback | Convenience progress listener. |
@@ -104,11 +104,11 @@ task.on('state_changed', (snapshot) => {
 
 #### What this method does
 
-Starts a managed photo backup upload immediately and returns a live `UploadTask`.
+Starts photo sync right away and returns a live `UploadTask`.
 
 #### When to call it
 
-Call for camera-roll sync, manual backup actions, and photo/video backup jobs that should restore after restart.
+Call for camera roll sync, manual photo sync buttons, and photo/video sync jobs that should restore after restart.
 
 #### Signature
 
@@ -120,10 +120,10 @@ backupAsset(input: ManagedBackupUploadInput): UploadTask
 
 | Field | Type | Required | Default | Format/Constraints | Meaning |
 | - | - | - | - | - | - |
-| `uri` | `string` | Yes | none | valid local file URI | Source media path. |
+| `uri` | `string` | Yes | none | valid local file URI | Photo or video to sync. |
 | `filename` | `string` | No | adapter-derived | non-empty string | Optional filename override. |
 | `mimeType` | `string` | No | adapter-derived | valid MIME string | Optional MIME override. |
-| `capturedAt` | `string` | No | none | ISO-8601 timestamp | Capture timestamp metadata. |
+| `capturedAt` | `string` | No | none | ISO-8601 timestamp | When the photo or video was taken. |
 | `width` | `number` | No | none | positive integer | Width metadata. |
 | `height` | `number` | No | none | positive integer | Height metadata. |
 | `onProgress` | `(snapshot: UploadTaskSnapshot) => void` | No | none | callback | Convenience progress listener. |
@@ -157,11 +157,11 @@ task.on('state_changed', (snapshot) => {
 
 #### What this method does
 
-Returns all non-terminal managed upload tasks currently kept in memory.
+Returns all in-progress backup or sync tasks currently kept in memory.
 
 #### When to call it
 
-Call after app bootstrap, screen remount, or navigation changes to reattach UI to in-flight uploads.
+Call after app bootstrap, screen remount, or navigation changes to reconnect your UI to in-progress backups.
 
 #### Signature
 

@@ -1,8 +1,8 @@
 ---
-title: "RN Methods: Photo Backup"
+title: "RN Methods: Photo Sync"
 ---
 
-Use `sdk.uploads.backupAsset(...)` for normal photo/video backup flows. This page covers the lower-level `sdk.client.photoBackup.*` methods for manual session orchestration and media management.
+Use `sdk.uploads.backupAsset(...)` for normal photo and video sync. This page covers the lower-level `sdk.client.photoBackup.*` methods for manual sync setup and media management.
 
 ## Prerequisites
 
@@ -10,13 +10,13 @@ Use `sdk.uploads.backupAsset(...)` for normal photo/video backup flows. This pag
 - `deviceIdProvider` configured in `createRNClient(...)`
 - For the default task-based upload path, see [RN Methods: Managed Uploads](/docs/rn-methods-managed-uploads)
 
-These methods are available through `sdk.client.photoBackup`. They are the advanced per-asset upload-session and media-management methods exposed by the React Native client.
+These methods are available through `sdk.client.photoBackup`. They are the advanced per-item sync and media-management methods exposed by the React Native client.
 
 `fileAdapter` is not required for these low-level methods. The default task-based path `sdk.uploads.backupAsset(...)` does require it.
 
 ## Default path for most apps
 
-For almost every integration, start photo backup uploads with:
+For almost every integration, start photo sync with:
 
 ```ts
 const task = sdk.uploads.backupAsset({
@@ -34,9 +34,9 @@ That path gives you:
 - task lifecycle state
 - pause / resume / cancel
 - persisted restore after app restart
-- automatic session handling
+- automatic sync session handling
 
-Only use `sdk.client.photoBackup.*` directly when you need to build your own custom upload-session flow.
+Only use `sdk.client.photoBackup.*` directly when you want to control each sync step yourself.
 
 ## Module overview
 
@@ -62,11 +62,11 @@ interface PhotoBackupModule {
 
 #### What this method does
 
-Registers the current device for photo backup flows.
+Registers the current device for photo sync flows.
 
 #### When to call it
 
-Call once at backup onboarding, then reuse returned registration state in app UX.
+Call once when you turn on photo sync, then reuse the returned device info in your app.
 
 #### Signature
 
@@ -114,11 +114,11 @@ try {
 
 #### What this method does
 
-Creates an upload session for a media asset and returns dedupe/single/multipart strategy.
+Creates a sync session for one photo or video and returns the upload plan.
 
 #### When to call it
 
-Call before uploading a photo/video file.
+Call before sending a photo or video yourself with the low-level API.
 
 #### Signature
 
@@ -132,9 +132,9 @@ createSession(body: PhotoBackupCreateSessionInput): Promise<PhotoBackupUploadSes
 | - | - | - | - | - | - |
 | `contentHash` | `string` | Yes | none | lowercase SHA-256 hex | Content hash used for dedupe. |
 | `byteSize` | `number` | Yes | none | positive integer bytes | File size. |
-| `mimeType` | `string` | Yes | none | valid MIME type | Asset MIME type. |
+| `mimeType` | `string` | Yes | none | valid MIME type | Photo or video type. |
 | `filename` | `string` | No | none | non-empty string | Optional original filename. |
-| `capturedAt` | `string` | No | none | ISO-8601 timestamp | Media capture timestamp. |
+| `capturedAt` | `string` | No | none | ISO-8601 timestamp | When the photo or video was taken. |
 | `width` | `number` | No | none | positive integer | Media width in pixels. |
 | `height` | `number` | No | none | positive integer | Media height in pixels. |
 
@@ -277,7 +277,7 @@ try {
 
 #### What this method does
 
-Finalizes an upload session and returns the resulting media asset ID.
+Finishes the sync session and returns the saved item ID.
 
 #### When to call it
 
@@ -321,7 +321,7 @@ try {
     filename,
     capturedAt,
   });
-  console.log('media asset', result.mediaAssetId);
+  console.log('saved item', result.mediaAssetId);
 } catch (error) {
   console.error('photoBackup.completeSession failed', error);
 }
@@ -375,7 +375,7 @@ try {
 
 #### What this method does
 
-Reconciles server-side session state and returns final media asset linkage when available.
+Checks server-side sync state and returns the final saved item link when available.
 
 #### When to call it
 
@@ -422,7 +422,7 @@ try {
 
 #### What this method does
 
-Lists backed-up media assets with cursor-based pagination.
+Lists synced photos and videos with cursor-based pagination.
 
 #### When to call it
 
@@ -468,7 +468,7 @@ try {
 
 #### What this method does
 
-Returns details for one backed-up media asset.
+Returns details for one synced photo or video.
 
 #### When to call it
 
@@ -503,7 +503,7 @@ getMediaDetail(mediaAssetId: string): Promise<PhotoBackupMediaAsset>
 
 #### Errors and handling
 
-- `NotFoundError`: media asset removed; refresh list.
+- `NotFoundError`: synced item was removed; refresh the list.
 - `AuthError`: re-authenticate.
 - `NetworkError`: keep current detail shell and retry.
 
@@ -522,7 +522,7 @@ try {
 
 #### What this method does
 
-Creates a signed download URL for one media asset.
+Creates a signed download URL for one synced photo or video.
 
 #### When to call it
 
@@ -615,7 +615,7 @@ try {
 
 #### What this method does
 
-Requests thumbnail regeneration/requeue for one media asset.
+Requests thumbnail regeneration for one synced photo or video.
 
 #### When to call it
 
@@ -641,7 +641,7 @@ requeueThumbnails(mediaAssetId: string): Promise<PhotoBackupOkResult>
 
 #### Errors and handling
 
-- `NotFoundError`: media asset missing.
+- `NotFoundError`: synced item is missing.
 - `RateLimitError`: back off and retry later.
 - `NetworkError`: retry action.
 
@@ -659,7 +659,7 @@ try {
 
 #### What this method does
 
-Deletes a backed-up media asset.
+Deletes a synced photo or video.
 
 #### When to call it
 

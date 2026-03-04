@@ -2,7 +2,7 @@
 title: React Native Quickstart
 ---
 
-Set up `@pipeopshq/mtn-rn-sdk` in a React Native app using the default managed `sdk.uploads.*` path first, then layer in low-level modules only where you need custom control.
+Set up `@pipeopshq/mtn-rn-sdk` in a React Native app using the default `sdk.uploads.*` path first. For most apps, this is the simple path for file/folder backup and photo sync.
 
 ## Prerequisites
 
@@ -10,7 +10,7 @@ Set up `@pipeopshq/mtn-rn-sdk` in a React Native app using the default managed `
 - Host-app sign-in flow that can supply an MTN access token
 - Persistent storage for tokens and upload task state (for example, AsyncStorage)
 - A file layer that can read local URIs, hash bytes, and upload ranged chunks
-- Device ID persistence only if you will use managed photo backup or low-level `sdk.client.photoBackup.*`
+- Device ID persistence only if you will use photo sync (`sdk.uploads.backupAsset(...)`) or low-level `sdk.client.photoBackup.*`
 
 ## 1) Install
 
@@ -18,7 +18,7 @@ Set up `@pipeopshq/mtn-rn-sdk` in a React Native app using the default managed `
 pnpm add @pipeopshq/mtn-rn-sdk@next @react-native-async-storage/async-storage
 ```
 
-`1.0.0` is currently published on the `next` dist-tag. `latest` still points to `0.2.0`, so keep using `@next` for the managed upload path.
+`1.0.0` is currently published on the `next` dist-tag. `latest` still points to `0.2.0`, so keep using `@next` for the new upload path.
 
 ## 2) Configure
 
@@ -111,7 +111,7 @@ export const fileAdapter: FileAdapter = {
 };
 ```
 
-`fileAdapter` and `uploads.taskStore` are the required pair for the managed upload path. `deviceIdProvider` is only required when you call `sdk.uploads.backupAsset(...)` or low-level `sdk.client.photoBackup.*`.
+`fileAdapter` and `uploads.taskStore` are the required pair for the default upload path. `deviceIdProvider` is only required when you call `sdk.uploads.backupAsset(...)` for photo sync or use low-level `sdk.client.photoBackup.*`.
 
 File adapter details (range handling, `AbortSignal`, `etag`, and `modifiedAtMs`) are documented in [React Native Required Interfaces](/docs/rn-interfaces).
 
@@ -132,7 +132,7 @@ export const sdk = createRNClient({
 });
 ```
 
-If you will use managed photo backup, add `deviceIdProvider`:
+If you will use photo sync, add `deviceIdProvider`:
 
 ```ts
 import { createRNClient } from '@pipeopshq/mtn-rn-sdk';
@@ -150,7 +150,7 @@ export const sdk = createRNClient({
 
 `createRNClient(...)` returns:
 
-- `sdk.uploads` for the default task-based upload flow
+- `sdk.uploads` for the default file/folder backup and photo sync flow
 - `sdk.client` for typed low-level modules (`sessions`, `drive`, `sharing`, `bin`, `photoBackup`, `storage`)
 
 Store the MTN token after host-app sign-in:
@@ -168,7 +168,7 @@ export const onHostAppSignedIn = async (mtnAccessToken: string) => {
 
 ## 4) Verify
 
-Run this once during app bootstrap. It restores task state, verifies auth, reads usage, and fetches the first drive page.
+Run this once during app bootstrap. It restores in-progress backup tasks, checks auth, reads usage, and fetches the first drive page.
 
 ```ts
 import { sdk } from './sdk-client';
@@ -194,39 +194,39 @@ If verification fails with `AuthExchangeError` or `AuthError`, clear host-app au
 
 ## 5) Next steps
 
-- Start drive uploads with `sdk.uploads.putFile(...)`
-- Start managed photo backup with `sdk.uploads.backupAsset(...)`
+- Start file/folder backup with `sdk.uploads.putFile(...)`
+- Start photo sync with `sdk.uploads.backupAsset(...)`
 - Reattach UI after app restart with `sdk.uploads.getActiveTasks()`
-- Use `sdk.client.*` only for advanced protocol-level control
+- Use `sdk.client.*` only for advanced low-level control
 
-### Drive upload (Recommended)
+### File/folder backup (Recommended)
 
 ```ts
-export const uploadFile = (uri: string, parentId: string | null) => {
+export const startFileBackup = (uri: string, parentId: string | null) => {
   const task = sdk.uploads.putFile({
     uri,
     parentId,
   });
 
   task.on('state_changed', (snapshot) => {
-    console.log('upload progress', snapshot.bytesTransferred, snapshot.totalBytes);
+    console.log('file backup progress', snapshot.bytesTransferred, snapshot.totalBytes);
   });
 
   return task;
 };
 ```
 
-### Managed photo backup (Optional)
+### Photo sync (Optional)
 
 ```ts
-export const backupAsset = (uri: string) => {
+export const startPhotoSync = (uri: string) => {
   const task = sdk.uploads.backupAsset({
     uri,
     capturedAt: new Date().toISOString(),
   });
 
   task.on('state_changed', (snapshot) => {
-    console.log('backup progress', snapshot.bytesTransferred, snapshot.totalBytes);
+    console.log('photo sync progress', snapshot.bytesTransferred, snapshot.totalBytes);
   });
 
   return task;
