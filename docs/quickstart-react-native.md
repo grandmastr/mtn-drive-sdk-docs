@@ -20,6 +20,14 @@ You will build:
 
 If any of the terms below are new, skim [Concepts](/docs/concepts) or [Glossary](/docs/glossary) first.
 
+### The 5 steps
+
+1. Install the package line these docs assume.
+2. Configure the adapters that connect the SDK to your app.
+3. Initialize one shared client.
+4. Verify auth, restore, and low-level calls all work.
+5. Start one real upload task.
+
 ## 1) Install
 
 Install the SDK and the storage dependency used in this quickstart:
@@ -56,6 +64,8 @@ Create the four host-app adapters below.
 - `deviceIdProvider`: required only for `sdk.uploads.backupAsset(...)`
 
 Create `sdk-adapters.ts`:
+
+Why this step exists: the SDK handles MTN Drive logic, but your app still has to tell it how to store tokens, remember active tasks, identify a device for photo backup, and read bytes from local files.
 
 ```ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -161,6 +171,8 @@ Create one shared SDK client for the app runtime.
 
 For basic file uploads:
 
+Why this step exists: this is the point where the adapters become one real SDK instance. Keep this client shared so uploads, restore, and low-level modules all use the same state.
+
 ```ts
 import { createRNClient } from '@pipeopshq/mtn-rn-sdk';
 import { fileAdapter, tokenStore, uploadTaskStore } from './sdk-adapters';
@@ -175,6 +187,8 @@ export const sdk = createRNClient({
 ```
 
 If you will also run photo backup, include `deviceIdProvider`:
+
+Why this extra block exists: photo backup needs one stable device ID, so you only add this extra adapter when you plan to call `sdk.uploads.backupAsset(...)`.
 
 ```ts
 import { createRNClient } from '@pipeopshq/mtn-rn-sdk';
@@ -199,6 +213,8 @@ export const sdk = createRNClient({
 
 Most apps should keep the default retry behavior first.
 
+Why this section exists: these settings only change how patiently the SDK retries temporary failures. They do not fix missing auth, missing adapters, or a broken `fileAdapter` implementation.
+
 There are two different retry settings you can pass during setup:
 
 1. `retryPolicy`
@@ -212,7 +228,11 @@ The simplest rule:
 - use `managedRetryPolicy` for upload tasks
 - leave both alone until your first upload works
 
+Bad beginner instinct: do not start by changing retry values when setup fails. A missing token, missing `uploads.taskStore`, or incomplete `fileAdapter` will still fail no matter how many retries you allow.
+
 Example with the current default values made explicit:
+
+Why this example exists: it shows where the retry settings live in config, but you usually should not copy this unless you are deliberately tuning behavior.
 
 ```ts
 export const sdk = createRNClient({
@@ -278,6 +298,8 @@ If you are still in first-time setup, keep the defaults. Change these only after
 
 After your host app signs a user in, save the MTN token:
 
+Why this step exists: the SDK cannot make protected calls until your app saves the MTN token into `tokenStore`.
+
 ```ts
 import { tokenStore } from './sdk-adapters';
 
@@ -299,9 +321,21 @@ import { sdk } from './sdk-client';
 
 If `sdk` is defined, the client is wired into your app.
 
+Run one extra shape check:
+
+```ts
+import { sdk } from './sdk-client';
+
+console.log(Boolean(sdk.client), Boolean(sdk.uploads));
+```
+
+You should see `true true`. That confirms both the low-level modules and the managed upload runtime are present.
+
 ## 4) Verify
 
 Run one bootstrap check after app start:
+
+Why this step exists: this verifies the three main integration paths at once: auth, low-level module access, and upload-task restore.
 
 ```ts
 import { sdk } from './sdk-client';
@@ -335,9 +369,13 @@ The returned object should contain:
 
 That confirms auth, low-level modules, and task restore are all connected.
 
+If this step fails, go to [React Native Troubleshooting](/docs/rn-troubleshooting) before changing retry settings or rewriting adapters.
+
 ## 5) Upload your first file
 
 Start one file upload task:
+
+Why this step exists: this is the smallest real-world test that proves your app can create a task, emit progress, and finish a transfer.
 
 ```ts
 import { sdk } from './sdk-client';
@@ -357,6 +395,8 @@ export const startFileUpload = (uri: string) => {
 ```
 
 For photo backup, use the same task model:
+
+Why this second example exists: photo backup uses the same task behavior, but with media-specific metadata instead of a drive folder target.
 
 ```ts
 const task = sdk.uploads.backupAsset({

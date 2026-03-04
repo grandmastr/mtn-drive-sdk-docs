@@ -158,7 +158,11 @@ export const deviceIdProvider = {
 
 This adapter is required when you configure the managed `sdk.uploads.*` path.
 
+### How to think about it
+
 Think of it like a small notebook of unfinished uploads. The SDK writes down which tasks are still in progress, then reads that list back the next time the app starts.
+
+### What this is not
 
 It does **not** store the file bytes themselves. It stores task metadata, such as the task ID, current progress, and the information the SDK needs to reconnect to that task later.
 
@@ -173,6 +177,17 @@ In practice, this is what makes “close the app and come back later” work. Wi
 Reading tasks before `await sdk.uploads.ready`. The store may be correct, but restore has not finished yet.
 
 Another common mistake is thinking “the upload is broken” when the real problem is only that the app forgot the task after restart because the store is missing or not persistent.
+
+### Most common failure symptom
+
+Uploads seem fine while the app is open, then disappear from the UI after restart because there is nothing persistent to restore.
+
+### Debug first
+
+- Wait for `await sdk.uploads.ready` before calling `getActiveTasks()`.
+- Confirm `save(record)` writes real persistent data.
+- Confirm `loadAll()` returns the same records after a full app restart.
+- Keep one shared SDK instance so the same restored task set is reused across screens.
 
 ### Signature
 
@@ -247,6 +262,8 @@ This helper is the safest default because it already stores the exact task shape
 
 This adapter is required when you configure the managed `sdk.uploads.*` path.
 
+### How to think about it
+
 Think of `fileAdapter` as the SDK's hands and eyes on the device:
 
 - it looks at the local file and reports what it is
@@ -280,7 +297,20 @@ In plain terms:
 - your app knows how to read local files and send bytes in React Native,
 - `fileAdapter` connects those two.
 
+### What this is not
+
 It does **not** decide which folder to upload into, which user is signed in, or how retries work. Those decisions stay in the SDK. Its job is only local file access plus byte transfer.
+
+### Most common failure symptom
+
+Uploads start, but then fail before progress appears, during hashing, during a ranged upload, or at multipart confirmation because the adapter is returning incomplete data.
+
+### Debug first
+
+- Confirm the incoming `uri` can actually be opened on this device.
+- Confirm `getFileInfo(...)` reports the real file size.
+- Confirm `computeSha256(...)` hashes file bytes, not the path string.
+- Confirm multipart `upload(...)` returns `etag`.
 
 ### Signature
 

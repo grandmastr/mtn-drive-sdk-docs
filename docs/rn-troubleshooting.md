@@ -62,6 +62,27 @@ The task-based upload runtime was enabled, but the required upload adapters are 
 2. Add `uploads.taskStore`.
 3. Recreate the client with both values present.
 
+Bad setup:
+
+```ts
+const sdk = createRNClient({
+  tokenStore,
+  fileAdapter,
+});
+```
+
+Good setup:
+
+```ts
+const sdk = createRNClient({
+  tokenStore,
+  fileAdapter,
+  uploads: {
+    taskStore: uploadTaskStore,
+  },
+});
+```
+
 ### What the app should do
 
 Block the upload UI and show a setup error to the integrator during development.
@@ -115,6 +136,23 @@ Your `fileAdapter.upload(...)` completed a multipart part upload, but it did not
 2. Return it from `fileAdapter.upload(...)`.
 3. Start a new task after fixing the adapter.
 
+Bad adapter return:
+
+```ts
+return {
+  byteSize: body.size,
+};
+```
+
+Good adapter return:
+
+```ts
+return {
+  byteSize: body.size,
+  etag: response.headers.get('etag') ?? undefined,
+};
+```
+
 ### What the app should do
 
 Show a retry option for the developer or tester, not the end user, because this is usually an integration bug.
@@ -158,6 +196,8 @@ Show the task as “pausing” or keep the pause button disabled until the state
 
 Task restore did not finish yet, the store is not persistent, or the app is using a different SDK instance.
 
+A task store that only lives in memory can still look correct while the app stays open. The failure becomes obvious only after a real close-and-relaunch.
+
 ### Checks
 
 - Confirm you wait for `await sdk.uploads.ready`
@@ -185,6 +225,8 @@ Delay rendering of “active uploads” until restore finishes.
 ### What it means
 
 The SDK started the task, but the source file is not being read correctly or the adapter is not making progress.
+
+One common cause is an unfinished `computeSha256(...)` implementation. The task can get stuck before the first visible byte transfer if hashing never completes correctly.
 
 ### Checks
 

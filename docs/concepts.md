@@ -28,6 +28,45 @@ Adapters are the bridge between the SDK and your app:
 
 See [React Native Required Interfaces](/docs/rn-interfaces) for the full contracts.
 
+## Visual guide
+
+### Upload flow
+
+```mermaid
+flowchart LR
+  A["User picks a file"] --> B["sdk.uploads.putFile()"]
+  B --> C["SDK reads metadata and hash"]
+  C --> D["SDK uploads one file or one part at a time"]
+  D --> E["state_changed snapshots"]
+  D --> F["Upload completes"]
+```
+
+Notice the split: your app starts one task, then the SDK handles the upload workflow while your UI listens for snapshots.
+
+### Auth flow
+
+```mermaid
+flowchart LR
+  A["User signs in"] --> B["Host app saves token in tokenStore"]
+  B --> C["SDK reads token for protected calls"]
+  C --> D["Protected SDK request"]
+  D --> E["Token expired or missing"]
+  E --> F["App sends user back to sign-in"]
+```
+
+The important part is that the SDK does not invent auth on its own. Your app signs the user in first, then the SDK reuses that stored token.
+
+### Adapter bridge
+
+```mermaid
+flowchart LR
+  A["Your React Native app"] --> B["Adapters you implement"]
+  B --> C["MTN Drive SDK"]
+  C --> D["MTN Drive"]
+```
+
+Adapters are the hand-off point between your app and the SDK. Your app owns local storage, local file access, and device identity; the SDK owns the MTN Drive workflow.
+
 ## How upload tasks behave
 
 The default upload API returns a task object, not a one-shot promise.

@@ -51,12 +51,34 @@ The table above means:
 
 That is why a read call such as “load my files” may retry quietly once, while an upload task may fail with a task error instead of using the same low-level retry rule.
 
+## When not to change retry settings
+
+Do not tune retry values first when:
+
+- auth is broken and the app is not saving a usable token
+- `fileAdapter` is incomplete or returning the wrong data
+- `uploads.taskStore` is missing and restore is not even enabled
+
+In those cases, retry settings only make the same broken setup fail more slowly.
+
 ## Safe retry rule of thumb
 
 - Retry now: network issues, rate limits, temporary server failures
 - Retry after refresh: conflict errors
 - Do not auto-retry: auth failures, validation failures, missing files, changed files
 - For upload tasks: if you see `storage/retry-limit-exceeded` or `storage/session-expired`, start a new task instead of trying to revive the old one
+
+## Tuning examples
+
+Fail faster:
+
+If you want uploads to give up sooner on bad networks, reduce `maxPartRetries` so a task stops after fewer part-level retries.
+
+Be more patient:
+
+If your users are often on unstable mobile networks, you can raise `maxPartRetries` slightly and allow a modestly longer delay window before the SDK gives up.
+
+The key is to tune task retry only after the basic setup is correct and you have seen a real network-driven failure pattern.
 
 ## Error class matrix
 

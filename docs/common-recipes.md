@@ -4,6 +4,13 @@ title: Common Recipes
 
 Copy-paste the most common MTN Drive SDK patterns without reading the full reference first.
 
+Read this page like this:
+
+- read the recipe title
+- copy the code
+- check "When to use"
+- check "What happens"
+
 ## Prerequisites
 
 - You completed [React Native Quickstart](/docs/quickstart-react-native)
@@ -22,7 +29,13 @@ task.on('state_changed', (snapshot) => {
 });
 ```
 
-Use this for the simplest “upload this file now” action.
+### When to use
+
+Use this for the simplest “upload this file now” action, usually right after a document picker or an Upload button click.
+
+### What happens
+
+The SDK creates one task immediately, starts moving bytes, and emits progress snapshots until the task reaches `success`, `error`, or `canceled`.
 
 ## Upload multiple files
 
@@ -37,9 +50,15 @@ const tasks = fileUris.map((uri) =>
 await Promise.allSettled(tasks);
 ```
 
-Start one task per file, then wait for each task to finish or fail.
+### When to use
 
-## Show progress in UI
+Use this when the user picked several files and you want to start all uploads right away.
+
+### What happens
+
+The SDK creates one managed task per file. Each task runs independently, so one failure does not automatically stop the others.
+
+## Show upload percentage
 
 ```ts
 const task = sdk.uploads.putFile({ uri: fileUri });
@@ -52,7 +71,50 @@ task.on('state_changed', (snapshot) => {
 });
 ```
 
-Use `snapshot.bytesTransferred` and `snapshot.totalBytes` to drive a progress bar.
+### When to use
+
+Use this when your UI needs a simple `0%` to `100%` progress indicator.
+
+### What happens
+
+Every `state_changed` event recalculates the current percentage from the latest snapshot, so your progress bar stays in sync with the task.
+
+## Handle upload failure
+
+```ts
+const task = sdk.uploads.putFile({ uri: fileUri });
+
+const unsubscribe = task.on(
+  'state_changed',
+  (snapshot) => {
+    console.log(snapshot.state);
+  },
+  (error) => {
+    if (error.code === 'storage/unauthenticated') {
+      showLoginPrompt();
+      return;
+    }
+
+    if (error.code === 'storage/retry-limit-exceeded') {
+      showRetryButton();
+      return;
+    }
+
+    showGenericError(error.message);
+  },
+  () => {
+    showSuccessToast();
+  },
+);
+```
+
+### When to use
+
+Use this when you want progress, failure handling, and success handling in one place.
+
+### What happens
+
+The task keeps emitting snapshots while it runs, then calls either the error callback once for a terminal failure or the complete callback once for a terminal success.
 
 ## Pause and resume
 
@@ -63,7 +125,13 @@ task.pause();
 task.resume();
 ```
 
-Pause stops future work. Resume continues the same task instead of starting over.
+### When to use
+
+Use this for a pause button, a metered-network toggle, or any “stop for now, continue later” control.
+
+### What happens
+
+Pause stops new upload work from being scheduled. Resume continues the same task instead of creating a new one, so already-finished progress is preserved.
 
 ## Cancel an upload
 
@@ -73,7 +141,13 @@ const task = sdk.uploads.putFile({ uri: fileUri });
 task.cancel();
 ```
 
-Canceled tasks are intentionally finished. Do not auto-retry them unless the user asks again.
+### When to use
+
+Use this for an explicit user cancel action when they no longer want the upload to continue.
+
+### What happens
+
+The task moves into a terminal `canceled` state. It is intentionally finished, so your app should not auto-retry it unless the user starts again.
 
 ## Restore active tasks after app restart
 
@@ -83,7 +157,13 @@ await sdk.uploads.ready;
 const activeTasks = sdk.uploads.getActiveTasks();
 ```
 
-Always wait for `ready` before you reconnect UI to in-progress tasks.
+### When to use
+
+Use this during app startup before you rebuild an Active Uploads screen.
+
+### What happens
+
+`ready` waits for the SDK to load saved task records from `uploads.taskStore`. After that, `getActiveTasks()` returns the live in-memory task objects you can reconnect to.
 
 ## Use with a file picker
 
@@ -98,7 +178,13 @@ const task = sdk.uploads.putFile({
 });
 ```
 
-Pass the picker URI directly into `sdk.uploads.putFile(...)`.
+### When to use
+
+Use this right after a document picker returns a local file URI.
+
+### What happens
+
+The picker gives your app the local URI. You pass that URI straight into `sdk.uploads.putFile(...)`, and the SDK handles the upload workflow from there.
 
 ## Start a photo backup
 
@@ -109,7 +195,73 @@ const task = sdk.uploads.backupAsset({
 });
 ```
 
-This is the default path for camera roll sync and media backup jobs.
+### When to use
+
+Use this for camera roll sync, gallery backup, or any background media backup flow.
+
+### What happens
+
+The SDK starts a managed upload task for that media asset, using the same task lifecycle as normal file uploads.
+
+## Create a folder, then upload into it
+
+**Advanced but common**: this recipe uses the low-level `sdk.client.drive.*` module before the upload task API.
+
+```ts
+const folder = await sdk.client.drive.createFolder({
+  name: 'Receipts',
+  parentId: null,
+});
+
+const task = sdk.uploads.putFile({
+  uri: fileUri,
+  parentId: folder.id,
+});
+```
+
+### When to use
+
+Use this when uploads should go into a folder your app creates first, such as “Receipts” or “Invoices”.
+
+### What happens
+
+The low-level drive API creates the folder first. Then the task upload uses that new folder ID as the upload target.
+
+## List the user's files
+
+**Advanced but common**: this recipe uses the low-level `sdk.client.drive.*` module.
+
+```ts
+const page = await sdk.client.drive.listItems({ limit: 20 });
+
+page.items.forEach((item) => {
+  console.log(item.name, item.type);
+});
+```
+
+### When to use
+
+Use this when you need to render a file list or refresh a drive browser screen.
+
+### What happens
+
+The SDK fetches one page of drive items and returns them as `page.items`, which your app can map into rows, cards, or list items.
+
+## Delete a file safely
+
+**Advanced but common**: this recipe uses the low-level `sdk.client.drive.*` module.
+
+```ts
+await sdk.client.drive.deleteItem(itemId, { hard: 'false' });
+```
+
+### When to use
+
+Use this when the user taps Delete and you want the safer trash-first behavior instead of permanent deletion.
+
+### What happens
+
+The item is moved into trash instead of being permanently destroyed, which gives your app a recovery path if the user changes their mind.
 
 ## Convert an SDK error into UI text
 
@@ -132,4 +284,10 @@ const toMessage = (error: unknown) => {
 };
 ```
 
-Map SDK errors into short, user-facing text before you show them in your UI.
+### When to use
+
+Use this before showing any raw SDK error directly to end users.
+
+### What happens
+
+Your app turns internal SDK error codes into short, user-facing messages that explain what the person should do next.
