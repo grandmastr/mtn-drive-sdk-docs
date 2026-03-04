@@ -2,7 +2,7 @@
 title: React Native SDK Methods Reference
 ---
 
-Find each React Native SDK method by module, start from the default managed upload path, and drop down to the lower-level modules only when you need protocol-level control.
+Find each React Native SDK method by module. Start with the default upload path for file/folder backup and photo sync, and only drop to lower-level modules when you really need custom control.
 
 ## Prerequisites
 
@@ -58,7 +58,7 @@ interface CursorListResponse<T> {
 | `RateLimitError` | request throttled | back off and retry |
 | `NetworkError` | transport/connectivity failure | retry with user feedback |
 | `SdkError` | normalized SDK failure | show generic error and log metadata |
-| `UploadTaskError` | terminal managed upload failure or cancel | inspect `code`, decide whether to retry as a new task |
+| `UploadTaskError` | final backup/sync failure or cancel | inspect `code`, decide whether to retry as a new task |
 
 ## Typical SDK integration sequences
 
@@ -69,7 +69,7 @@ interface CursorListResponse<T> {
 3. `storage.summary()`
 4. `uploads.getActiveTasks()`
 
-### Managed upload flow (default)
+### Default file backup / photo sync flow
 
 1. `uploads.putFile(...)` or `uploads.backupAsset(...)`
 2. `uploadTask.on('state_changed', ...)`
@@ -92,9 +92,9 @@ interface CursorListResponse<T> {
 3. Multipart: `drive.createMultipartPartUrl(...)` + `drive.completeMultipartSession(...)`
 4. `drive.completeUpload({ fileId })`
 
-### Advanced manual photo backup flow
+### Advanced manual photo sync flow
 
-Use `uploads.backupAsset(...)` by default for photo and video backup. Drop down to the low-level `photoBackup.*` methods only when you need to control the upload-session protocol yourself.
+Use `uploads.backupAsset(...)` by default for photo and video sync. Drop down to the low-level `photoBackup.*` methods only when you need to control each sync step yourself.
 
 1. `photoBackup.registerDevice(...)`
 2. `photoBackup.createSession(...)`

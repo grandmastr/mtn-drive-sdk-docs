@@ -2,7 +2,7 @@
 title: Example
 ---
 
-This is a full React Native integration example you can copy and adapt in your host app, centered on the default managed `sdk.uploads.*` flow.
+This is a full React Native integration example you can copy and adapt in your host app, centered on the default `sdk.uploads.*` flow for file/folder backup and photo sync.
 
 It covers:
 
@@ -11,7 +11,7 @@ It covers:
 3. upload task persistence
 4. file and device adapters
 5. `createRNClient(...)`
-6. managed upload tasks
+6. backup and sync tasks
 7. optional low-level SDK modules
 
 ## 1) Install
@@ -148,12 +148,12 @@ export const onUserSignedIn = async (mtnAccessToken: string) => {
 };
 ```
 
-## 5) Run the managed upload flow (default path)
+## 5) Run the default backup flow
 
 ```ts
 import { sdk } from './sdk-client';
 
-export const startManagedUpload = async (uri: string, parentId: string | null) => {
+export const startFileBackup = async (uri: string, parentId: string | null) => {
   await sdk.uploads.ready;
 
   const task = sdk.uploads.putFile({
@@ -164,17 +164,17 @@ export const startManagedUpload = async (uri: string, parentId: string | null) =
   task.on(
     'state_changed',
     (snapshot) => {
-      console.log('upload-state', {
+      console.log('file-backup-state', {
         state: snapshot.state,
         bytesTransferred: snapshot.bytesTransferred,
         totalBytes: snapshot.totalBytes,
       });
     },
     (error) => {
-      console.error('upload-failed', error.code, error.message);
+      console.error('file-backup-failed', error.code, error.message);
     },
     () => {
-      console.log('upload-complete');
+      console.log('file-backup-complete');
     },
   );
 
@@ -188,7 +188,7 @@ export const startManagedUpload = async (uri: string, parentId: string | null) =
 ```ts
 import { sdk } from './sdk-client';
 
-export const getRestoredUploads = async () => {
+export const getRestoredBackups = async () => {
   await sdk.uploads.ready;
   return sdk.uploads.getActiveTasks().map((task) => ({
     id: task.id,
@@ -201,7 +201,7 @@ export const getRestoredUploads = async () => {
 
 ## 7) Optional low-level SDK modules
 
-Use `sdk.client.*` only when you need custom protocol control or non-upload product surfaces.
+Use `sdk.client.*` only when you need custom low-level control or other product surfaces outside normal backup/sync flows.
 
 ```ts
 import { sdk } from './sdk-client';
@@ -251,5 +251,5 @@ Use this page with:
 
 - [React Native Quickstart](/docs/quickstart-react-native) for fast setup
 - [React Native Required Interfaces](/docs/rn-interfaces) for adapter contract details
-- [RN Methods: Managed Uploads](/docs/rn-methods-managed-uploads) for the default upload path
+- [RN Methods: Managed Uploads](/docs/rn-methods-managed-uploads) for the default backup and sync path
 - [React Native SDK Methods Reference](/docs/rn-sdk-methods-reference) for the full method index
