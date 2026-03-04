@@ -2,7 +2,7 @@
 title: "RN Methods: Photo Backup"
 ---
 
-Register devices, orchestrate media upload sessions, confirm parts, and manage photo/video backup assets.
+Use `sdk.uploads.backupAsset(...)` for normal photo/video backup flows. This page covers the lower-level `sdk.client.photoBackup.*` methods for manual session orchestration and media management.
 
 ## Prerequisites
 
@@ -10,9 +10,33 @@ Register devices, orchestrate media upload sessions, confirm parts, and manage p
 - `deviceIdProvider` configured in `createRNClient(...)`
 - For the default task-based upload path, see [RN Methods: Managed Uploads](/docs/rn-methods-managed-uploads)
 
-These methods are available through `sdk.client.photoBackup`. They are the low-level per-asset upload-session and media-management methods exposed by the React Native client.
+These methods are available through `sdk.client.photoBackup`. They are the advanced per-asset upload-session and media-management methods exposed by the React Native client.
 
 `fileAdapter` is not required for these low-level methods. The default task-based path `sdk.uploads.backupAsset(...)` does require it.
+
+## Default path for most apps
+
+For almost every integration, start photo backup uploads with:
+
+```ts
+const task = sdk.uploads.backupAsset({
+  uri,
+  filename,
+  mimeType,
+  capturedAt,
+  width,
+  height,
+});
+```
+
+That path gives you:
+
+- task lifecycle state
+- pause / resume / cancel
+- persisted restore after app restart
+- automatic session handling
+
+Only use `sdk.client.photoBackup.*` directly when you need to build your own custom upload-session flow.
 
 ## Module overview
 

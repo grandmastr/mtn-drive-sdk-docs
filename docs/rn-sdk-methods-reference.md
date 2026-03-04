@@ -92,7 +92,9 @@ interface CursorListResponse<T> {
 3. Multipart: `drive.createMultipartPartUrl(...)` + `drive.completeMultipartSession(...)`
 4. `drive.completeUpload({ fileId })`
 
-### Advanced photo backup flow
+### Advanced manual photo backup flow
+
+Use `uploads.backupAsset(...)` by default for photo and video backup. Drop down to the low-level `photoBackup.*` methods only when you need to control the upload-session protocol yourself.
 
 1. `photoBackup.registerDevice(...)`
 2. `photoBackup.createSession(...)`
