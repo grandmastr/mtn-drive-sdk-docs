@@ -195,6 +195,87 @@ export const sdk = createRNClient({
 });
 ```
 
+### Optional: control retry behavior
+
+Most apps should keep the default retry behavior first.
+
+There are two different retry settings you can pass during setup:
+
+1. `retryPolicy`
+   This controls retries for normal SDK requests like list, read, and lookup calls.
+2. `uploads.managedRetryPolicy`
+   This controls retries while a task-based upload is already running.
+
+The simplest rule:
+
+- use `retryPolicy` for normal API calls
+- use `managedRetryPolicy` for upload tasks
+- leave both alone until your first upload works
+
+Example with the current default values made explicit:
+
+```ts
+export const sdk = createRNClient({
+  tokenStore,
+  fileAdapter,
+  retryPolicy: {
+    maxRetries: 1,
+    retryDelayMs: 250,
+    retryMethods: ['GET'],
+    retryStatusCodes: [408, 429, 500, 502, 503, 504],
+  },
+  uploads: {
+    taskStore: uploadTaskStore,
+    managedRetryPolicy: {
+      maxPartRetries: 3,
+      baseDelayMs: 500,
+      maxDelayMs: 5000,
+    },
+  },
+});
+```
+
+### What `retryPolicy` means
+
+`retryPolicy` is the low-level transport retry rule for ordinary SDK requests.
+
+Think of it as:
+
+“If a normal API call fails for a temporary reason, should the SDK try again automatically?”
+
+With the default values:
+
+- the SDK retries only once
+- it waits a short time before retrying
+- it retries only `GET` requests automatically
+- it retries only temporary status codes like timeouts, rate limits, and temporary server failures
+
+That means a read call like “load my file list” may retry quietly once, but auth failures should not keep looping.
+
+### What `managedRetryPolicy` means
+
+`managedRetryPolicy` is the upload-task retry rule used by `sdk.uploads.*`.
+
+Think of it as:
+
+“If one step inside an upload fails because of a temporary network problem, how hard should the SDK try before giving up?”
+
+With the default values:
+
+- an upload part can retry up to 3 times
+- the wait starts at 500ms
+- the wait can grow, but it caps at 5000ms
+
+This is what helps an upload survive a short mobile-network glitch without you writing your own retry loop.
+
+### When to change these values
+
+Only tune `retryPolicy` if ordinary API calls are too aggressive or not aggressive enough for your network conditions.
+
+Only tune `managedRetryPolicy` if upload tasks are giving up too quickly, or if you want uploads to fail faster instead of retrying several times.
+
+If you are still in first-time setup, keep the defaults. Change these only after you see a real issue.
+
 After your host app signs a user in, save the MTN token:
 
 ```ts

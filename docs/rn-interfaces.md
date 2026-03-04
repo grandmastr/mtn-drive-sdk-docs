@@ -158,13 +158,21 @@ export const deviceIdProvider = {
 
 This adapter is required when you configure the managed `sdk.uploads.*` path.
 
+Think of it like a small notebook of unfinished uploads. The SDK writes down which tasks are still in progress, then reads that list back the next time the app starts.
+
+It does **not** store the file bytes themselves. It stores task metadata, such as the task ID, current progress, and the information the SDK needs to reconnect to that task later.
+
 ### When it is required
 
 Required for task-based uploads. If you skip it, `sdk.uploads` cannot run.
 
+In practice, this is what makes “close the app and come back later” work. Without it, the upload UI has nothing to restore from.
+
 ### Common mistake
 
 Reading tasks before `await sdk.uploads.ready`. The store may be correct, but restore has not finished yet.
+
+Another common mistake is thinking “the upload is broken” when the real problem is only that the app forgot the task after restart because the store is missing or not persistent.
 
 ### Signature
 
@@ -192,6 +200,19 @@ interface UploadTaskStore {
 | `save(record)` | Persist the full record exactly as provided. |
 | `remove(taskId)` | Remove the persisted record for that task ID. |
 
+### How it works in practice
+
+The normal task-store flow looks like this:
+
+1. Your app starts an upload task.
+2. The SDK saves the active task record through `save(record)`.
+3. The app closes or is killed.
+4. On next launch, `await sdk.uploads.ready` calls `loadAll()`.
+5. The SDK rebuilds in-memory task objects from those saved records.
+6. When a task reaches a terminal state, the SDK removes it with `remove(taskId)`.
+
+If one of those steps fails, the upload may still work while the app stays open, but restore after restart becomes unreliable.
+
 ### Starter implementation
 
 For React Native, use the built-in helper:
@@ -203,11 +224,20 @@ import { createAsyncStorageUploadTaskStore } from '@pipeopshq/mtn-rn-sdk';
 export const uploadTaskStore = createAsyncStorageUploadTaskStore(AsyncStorage);
 ```
 
+This helper is the safest default because it already stores the exact task shape the SDK expects.
+
 ### Important behavior
 
 - Persist only non-terminal tasks.
 - Do not mutate record shape before saving.
 - Use one shared store per app install so restored tasks reattach consistently.
+
+### What breaks if this is wrong
+
+- If `loadAll()` returns the wrong shape, restore can fail before your upload screen renders.
+- If `save(record)` drops fields, pause/resume or restore can behave unpredictably.
+- If `remove(taskId)` does nothing, finished tasks can keep reappearing after restart.
+- If the store is not persistent, uploads may look fine until the app closes, then disappear from the UI on relaunch.
 
 ## 4) `fileAdapter` (managed uploads only)
 
@@ -217,13 +247,28 @@ export const uploadTaskStore = createAsyncStorageUploadTaskStore(AsyncStorage);
 
 This adapter is required when you configure the managed `sdk.uploads.*` path.
 
+Think of `fileAdapter` as the SDK's hands and eyes on the device:
+
+- it looks at the local file and reports what it is
+- it computes the file hash
+- it sends the file bytes to the upload URL the SDK gives it
+
+The SDK itself does not directly read from the device file system. That is why this adapter exists.
+
 ### When it is required
 
 Required for task-based uploads. Without it, the SDK cannot inspect or transfer local files.
 
+This is true for both:
+
+- `sdk.uploads.putFile(...)`
+- `sdk.uploads.backupAsset(...)`
+
 ### Common mistake
 
 Returning the wrong `etag` behavior for multipart uploads. If your adapter uploads a range, it must return the server `etag` for that part.
+
+Another common mistake is hashing the URI string instead of hashing the actual file contents. The SDK needs the hash of the file bytes, not the text of the path.
 
 ### Plain-English meaning
 
@@ -234,6 +279,8 @@ In plain terms:
 - the SDK knows the upload workflow,
 - your app knows how to read local files and send bytes in React Native,
 - `fileAdapter` connects those two.
+
+It does **not** decide which folder to upload into, which user is signed in, or how retries work. Those decisions stay in the SDK. Its job is only local file access plus byte transfer.
 
 ### Signature
 
@@ -307,6 +354,16 @@ interface UploadResult {
 - `upload` must return `etag` for multipart uploads.
 - `upload` should honor `signal` so pause/cancel can stop in-flight requests promptly.
 
+### How the three methods work together
+
+The SDK usually uses `fileAdapter` in this order:
+
+1. `getFileInfo(uri)` to learn the file size, MIME type, and filename
+2. `computeSha256(uri)` to confirm the file content and support safe upload behavior
+3. `upload(...)` one or more times to send the bytes
+
+So if uploads are failing early, check `getFileInfo(...)` and `computeSha256(...)` first. If uploads fail later during progress, check `upload(...)`.
+
 ### When each method is called
 
 | Method | Called by | Typical timing |
@@ -348,11 +405,21 @@ If these bounds are wrong, part confirmation can fail or uploads can produce cor
 - Do not drop content-type or signed-upload headers.
 - If your networking stack normalizes header names, ensure values remain intact.
 
+If you remove or alter these headers, the upload URL can reject the request even when the file and token are correct.
+
 ### Failure behavior rules
 
 - Throw on any non-2xx upload response.
 - Include status in thrown error message when possible.
 - Do not return success payloads for failed HTTP uploads.
+
+### What breaks if this is wrong
+
+- If `getFileInfo(...)` returns the wrong size, progress can be wrong and upload-session setup can fail.
+- If `computeSha256(...)` is wrong, the SDK can reject the file or treat it as changed.
+- If `upload(...)` ignores `range`, multipart uploads can corrupt the final object.
+- If `upload(...)` ignores `signal`, pause and cancel will feel broken.
+- If `upload(...)` forgets the `etag`, multipart uploads can stop at part confirmation.
 
 ### Quick implementation checklist
 

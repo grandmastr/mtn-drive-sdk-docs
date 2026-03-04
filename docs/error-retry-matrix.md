@@ -25,6 +25,39 @@ Additional behavior:
 - Protected calls attempt one auth refresh retry on first `401`.
 - Public-share methods run in no-auth mode and do not require token exchange.
 
+## How to think about retry decisions
+
+There are two different retry ideas in this SDK:
+
+1. **Request retry**
+   This is the low-level HTTP retry behavior for ordinary SDK requests such as list, read, and lookup calls.
+2. **Upload task retry**
+   This is the task-level behavior inside `sdk.uploads.*` when an upload part or upload session hits a temporary problem.
+
+If you mix those two together, retry behavior feels confusing. A simple rule:
+
+- list and fetch calls can often retry safely
+- auth failures should not keep retrying
+- upload task failures should usually create a new task after the failure reason is fixed
+
+## Retry model in plain English
+
+The table above means:
+
+- the SDK retries only once by default for eligible low-level requests
+- the retry delay starts at `250ms`
+- only `GET` requests are retried automatically by that low-level transport rule
+- only temporary server or network-style status codes are eligible
+
+That is why a read call such as “load my files” may retry quietly once, while an upload task may fail with a task error instead of using the same low-level retry rule.
+
+## Safe retry rule of thumb
+
+- Retry now: network issues, rate limits, temporary server failures
+- Retry after refresh: conflict errors
+- Do not auto-retry: auth failures, validation failures, missing files, changed files
+- For upload tasks: if you see `storage/retry-limit-exceeded` or `storage/session-expired`, start a new task instead of trying to revive the old one
+
 ## Error class matrix
 
 | SDK error class | What it means in plain English | Safe to retry? | What the app should show | What the app should do |

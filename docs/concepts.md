@@ -46,6 +46,32 @@ The common task states are:
 - `error`: the upload stopped because something failed
 - `canceled`: the user intentionally stopped the upload
 
+## The two retry layers
+
+The SDK has two different retry ideas, and they solve different problems.
+
+### Request retry
+
+This is the top-level `retryPolicy` you can pass into `createRNClient(...)`.
+
+It applies to ordinary SDK requests such as:
+
+- loading lists
+- reading metadata
+- checking storage
+
+It does **not** directly control how file bytes are retried inside an upload task.
+
+### Upload-task retry
+
+This is `uploads.managedRetryPolicy` inside the `uploads` config.
+
+It applies to temporary failures during a task-based upload, such as a failed upload part.
+
+That is why a normal list request and a running upload task do not always follow the same retry behavior.
+
+If you are new, leave both retry settings at their defaults until you have a real reason to tune them.
+
 ## Why `sdk.uploads` is the default path
 
 For most apps, `sdk.uploads` is the right starting point because it wraps the upload workflow into one consistent task interface.
