@@ -2,25 +2,31 @@
 title: RN SDK Docs Writing Style (Internal)
 ---
 
-This guide defines the required Sentry-style structure for RN SDK docs pages.
+This guide defines the required structure for RN SDK docs pages, including the beginner-first onboarding rules.
 
-## Sentry-style page pattern
+## Page pattern
 
 All RN docs pages must include:
 
 1. H1 title from frontmatter
 2. One-sentence outcome-oriented subtitle
-3. `## Prerequisites` section near top
+3. A setup-context section near the top:
+   either `## Prerequisites` or `## Before You Start`
 
-Setup and onboarding pages must use numbered H2 flow:
+Setup and onboarding pages must use a numbered flow:
 
 1. `## 1) Install`
 2. `## 2) Configure`
 3. `## 3) Initialize`
 4. `## 4) Verify`
-5. `## 5) Next steps`
+5. A first-success action before the final next steps
 
-Optional sections must include `(Optional)` in the heading label.
+Every onboarding page must include at least one “How to verify this worked” checkpoint.
+
+Dense technical pages must include either:
+
+- `## Do I need this page?`, or
+- `## Advanced page` plus a “Use this page when…” explanation
 
 ## Method page template (mandatory)
 
@@ -61,6 +67,9 @@ Response fields table columns:
 - Do not describe backend endpoint contracts.
 - Do not use backend ownership language.
 - Prefer named request/response types over generic object signatures.
+- Explain concepts before signatures on beginner-facing pages.
+- Label low-level pages as advanced when they are not the default path.
+- Verify release metadata before hardcoding version numbers.
 
 ## Error guidance rules
 

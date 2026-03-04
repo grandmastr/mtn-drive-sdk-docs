@@ -13,6 +13,35 @@ Start, watch, pause, resume, cancel, and restore file backup or photo sync tasks
 
 `sdk.uploads` is the default high-level upload surface for new integrations. Use these methods first for normal file/folder backup and photo sync. Only drop to the older helper or the low-level upload APIs if you need custom control.
 
+## Most common tasks
+
+- Start one file upload: `uploads.putFile(...)`
+- Start one photo backup: `uploads.backupAsset(...)`
+- Watch progress: `uploadTask.on('state_changed', ...)`
+- Pause work: `uploadTask.pause()`
+- Resume work: `uploadTask.resume()`
+- Cancel work: `uploadTask.cancel()`
+- Restore after restart: `await sdk.uploads.ready` then `uploads.getActiveTasks()`
+
+## Upload task lifecycle
+
+The default upload API returns a live task object instead of a one-shot promise.
+
+That means you can:
+
+- listen for progress while the upload runs
+- pause, resume, or cancel the same task
+- restore task state after the app restarts
+- await the task when you need the final result
+
+## Task state glossary
+
+- `running`: work is actively moving forward
+- `paused`: the task is waiting for you to resume it
+- `success`: the upload finished successfully
+- `error`: the upload stopped because something failed
+- `canceled`: the user intentionally stopped the task
+
 ## Module overview
 
 ```ts
@@ -84,8 +113,8 @@ putFile(input: ManagedDriveUploadInput): UploadTask
 
 - `Error('managed uploads require fileAdapter...')`: client was configured incorrectly; add `fileAdapter` before calling this method.
 - `Error('managed uploads require uploads.taskStore...')`: client was configured incorrectly; add `uploads.taskStore` before calling this method.
-- `AuthExchangeError` or `AuthError`: clear host auth state and route to sign-in.
-- `UploadTaskError` is surfaced through the returned task, not thrown synchronously, once the upload starts running.
+- `AuthExchangeError` or `AuthError`: clear host auth state, route to sign-in, then start a new task after the user signs in again.
+- `UploadTaskError` is surfaced through the returned task, not thrown synchronously, once the upload starts running. Use the task `error.code` to decide whether to retry, re-sign-in, or ask the user to pick a file again.
 
 #### Minimal example
 
@@ -137,8 +166,8 @@ backupAsset(input: ManagedBackupUploadInput): UploadTask
 #### Errors and handling
 
 - `Error('managed photo backup uploads require deviceIdProvider...')`: add `deviceIdProvider` before calling this method.
-- `AuthExchangeError` or `AuthError`: clear host auth state and route to sign-in.
-- `UploadTaskError` is surfaced through the returned task after the task starts.
+- `AuthExchangeError` or `AuthError`: clear host auth state, route to sign-in, then start a new backup task after sign-in succeeds.
+- `UploadTaskError` is surfaced through the returned task after the task starts. Use the `code` field to decide whether to retry automatically or show user action.
 
 #### Minimal example
 

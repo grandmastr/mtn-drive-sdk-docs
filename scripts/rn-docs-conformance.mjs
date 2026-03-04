@@ -8,9 +8,16 @@ const sdkRoot = process.env.SDK_REPO_PATH
   ? path.resolve(process.env.SDK_REPO_PATH)
   : path.resolve(docsRoot, '../mtn-drive-sdk');
 
+const docsOverviewFile = path.join(docsRoot, 'docs', 'overview.md');
+const docsInstallFile = path.join(docsRoot, 'docs', 'install-npm.md');
 const docsMethodsHubFile = path.join(docsRoot, 'docs', 'rn-sdk-methods-reference.md');
 const docsQuickstartFile = path.join(docsRoot, 'docs', 'quickstart-react-native.md');
+const docsInterfacesFile = path.join(docsRoot, 'docs', 'rn-interfaces.md');
+const docsManagedUploadsFile = path.join(docsRoot, 'docs', 'rn-methods-managed-uploads.md');
+const docsTroubleshootingFile = path.join(docsRoot, 'docs', 'rn-troubleshooting.md');
 const docsErrorsFile = path.join(docsRoot, 'docs', 'error-retry-matrix.md');
+const docsReleaseFile = path.join(docsRoot, 'docs', 'release-versioning.md');
+const docsSidebarFile = path.join(docsRoot, 'sidebars.ts');
 
 const methodDocFiles = [
   path.join(docsRoot, 'docs', 'rn-methods-sessions.md'),
@@ -19,17 +26,28 @@ const methodDocFiles = [
   path.join(docsRoot, 'docs', 'rn-methods-bin.md'),
   path.join(docsRoot, 'docs', 'rn-methods-photo-backup.md'),
   path.join(docsRoot, 'docs', 'rn-methods-storage.md'),
-  path.join(docsRoot, 'docs', 'rn-methods-managed-uploads.md'),
+  docsManagedUploadsFile,
 ];
 
-const pagesRequiringPrereqs = [
+const advancedMethodFiles = [
+  path.join(docsRoot, 'docs', 'rn-methods-sessions.md'),
+  path.join(docsRoot, 'docs', 'rn-methods-drive.md'),
+  path.join(docsRoot, 'docs', 'rn-methods-sharing.md'),
+  path.join(docsRoot, 'docs', 'rn-methods-bin.md'),
+  path.join(docsRoot, 'docs', 'rn-methods-photo-backup.md'),
+  path.join(docsRoot, 'docs', 'rn-methods-storage.md'),
+];
+
+const pagesRequiringSetupContext = [
   docsQuickstartFile,
-  path.join(docsRoot, 'docs', 'rn-interfaces.md'),
+  docsInterfacesFile,
   docsMethodsHubFile,
   ...methodDocFiles,
   docsErrorsFile,
-  path.join(docsRoot, 'docs', 'rn-troubleshooting.md'),
+  docsTroubleshootingFile,
 ];
+
+const supportDocIds = ['common-recipes', 'concepts', 'glossary', 'faq'];
 
 const moduleSpecs = [
   {
@@ -85,11 +103,13 @@ const requiredMethodSections = [
 ];
 
 const requiredQuickstartHeadings = [
+  '## Before You Start',
   '## 1) Install',
   '## 2) Configure',
   '## 3) Initialize',
   '## 4) Verify',
-  '## 5) Next steps',
+  '## 5) Upload your first file',
+  '## 6) Next steps',
 ];
 
 const requiredErrorClasses = [
@@ -136,7 +156,13 @@ const ok = (message) => {
 
 const collectInterfaceMethods = (spec) => {
   const source = read(spec.file);
-  const sourceFile = ts.createSourceFile(spec.file, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const sourceFile = ts.createSourceFile(
+    spec.file,
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TS,
+  );
 
   const results = [];
 
@@ -184,26 +210,37 @@ const hasSubtitle = (content) => {
   return intro.length > 0;
 };
 
-for (const file of [docsMethodsHubFile, docsQuickstartFile, docsErrorsFile, ...methodDocFiles]) {
+const requiredFiles = [
+  docsOverviewFile,
+  docsInstallFile,
+  docsMethodsHubFile,
+  docsQuickstartFile,
+  docsInterfacesFile,
+  docsManagedUploadsFile,
+  docsTroubleshootingFile,
+  docsErrorsFile,
+  docsReleaseFile,
+  docsSidebarFile,
+  ...methodDocFiles,
+  ...supportDocIds.map((docId) => path.join(docsRoot, 'docs', `${docId}.md`)),
+];
+
+for (const file of requiredFiles) {
   if (!fs.existsSync(file)) {
     fail(`Missing docs file: ${file}`);
   }
 }
 
-for (const file of pagesRequiringPrereqs) {
-  if (!fs.existsSync(file)) {
-    fail(`Missing required page for prerequisites check: ${file}`);
-    continue;
-  }
+for (const file of pagesRequiringSetupContext) {
   const content = read(file);
-  if (!content.includes('## Prerequisites')) {
-    fail(`Missing prerequisites section: ${path.basename(file)}`);
+  if (!content.includes('## Prerequisites') && !content.includes('## Before You Start')) {
+    fail(`Missing setup-context section: ${path.basename(file)}`);
   }
   if (!hasSubtitle(content)) {
     fail(`Missing subtitle sentence before first H2: ${path.basename(file)}`);
   }
 }
-ok('Prerequisites and subtitle checks passed.');
+ok('Setup-context and subtitle checks passed.');
 
 const expected = moduleSpecs.flatMap(collectInterfaceMethods).sort();
 
@@ -250,7 +287,9 @@ for (const method of expected) {
 
   for (const subsection of requiredMethodSections) {
     if (!section.includes(subsection)) {
-      fail(`Method \`${method}\` is missing subsection \`${subsection}\` in ${path.basename(file)}.`);
+      fail(
+        `Method \`${method}\` is missing subsection \`${subsection}\` in ${path.basename(file)}.`,
+      );
     }
   }
 
@@ -278,7 +317,31 @@ for (const heading of requiredQuickstartHeadings) {
     fail(`Quickstart is missing required heading: ${heading}`);
   }
 }
+if (!/How to verify this worked/i.test(quickstartContent)) {
+  fail('Quickstart is missing a "How to verify this worked" checkpoint.');
+}
 ok('Quickstart numbered flow check passed.');
+
+const overviewContent = read(docsOverviewFile);
+if (!/Start here/i.test(overviewContent)) {
+  fail('Overview is missing a start-path section.');
+}
+if (!/first upload/i.test(overviewContent)) {
+  fail('Overview is missing a first-upload section.');
+}
+ok('Overview onboarding check passed.');
+
+const interfacesContent = read(docsInterfacesFile);
+if (!/Do I need this page\?/i.test(interfacesContent)) {
+  fail('React Native Required Interfaces is missing a "Do I need this page?" section.');
+}
+ok('Interfaces framing check passed.');
+
+const managedUploadsContent = read(docsManagedUploadsFile);
+if (!/Most common tasks/i.test(managedUploadsContent)) {
+  fail('Managed uploads page is missing a "Most common tasks" jump list.');
+}
+ok('Managed uploads framing check passed.');
 
 const errorContent = read(docsErrorsFile);
 for (const errorName of requiredErrorClasses) {
@@ -296,13 +359,37 @@ for (const link of requiredHubLinks) {
 }
 ok('Methods hub link check passed.');
 
+const installContent = read(docsInstallFile);
+const releaseContent = read(docsReleaseFile);
+if (installContent.includes('1.0.0') || releaseContent.includes('1.0.0')) {
+  fail('Stale hardcoded 1.0.0 version text found in install or release docs.');
+}
+ok('Release metadata check passed.');
+
+for (const file of advancedMethodFiles) {
+  const content = read(file);
+  if (!/Advanced page/i.test(content)) {
+    fail(`${path.basename(file)} is missing advanced framing.`);
+  }
+}
+ok('Advanced-page framing check passed.');
+
+const sidebarContent = read(docsSidebarFile);
+for (const docId of supportDocIds) {
+  if (!sidebarContent.includes(`'${docId}'`)) {
+    fail(`Sidebar is missing required support doc: ${docId}`);
+  }
+}
+ok('Support-doc sidebar check passed.');
+
 const languageFiles = [
+  docsOverviewFile,
   docsMethodsHubFile,
   docsQuickstartFile,
-  path.join(docsRoot, 'docs', 'rn-interfaces.md'),
+  docsInterfacesFile,
   docsErrorsFile,
   ...methodDocFiles,
-  path.join(docsRoot, 'docs', 'rn-troubleshooting.md'),
+  docsTroubleshootingFile,
 ];
 
 for (const file of languageFiles) {

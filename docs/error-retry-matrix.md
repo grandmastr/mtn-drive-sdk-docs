@@ -2,7 +2,7 @@
 title: Error Handling and Retry Playbook
 ---
 
-Handle SDK errors predictably with user-safe retries, auth recovery, and module-specific fallback behavior, including the managed upload task flow.
+Handle SDK errors predictably with plain-English UI messaging, safe retry behavior, and clear app actions.
 
 ## Prerequisites
 
@@ -27,16 +27,30 @@ Additional behavior:
 
 ## Error class matrix
 
-| SDK error class | Typical trigger | Retryability | App action recommendation | User-facing message style |
+| SDK error class | What it means in plain English | Safe to retry? | What the app should show | What the app should do |
 | - | - | - | - | - |
-| `AuthExchangeError` | token missing, exchange failed, refresh failed | User action required | clear host auth state and route to sign-in | “Session expired. Sign in again.” |
-| `AuthError` | protected request rejected (`401/403`) | User action required | stop protected retries, request sign-in | “You are not authorized for this action.” |
-| `ValidationError` | invalid input (`400/422`) | Never (until fixed) | show field-level validation errors | “Check your input and try again.” |
-| `NotFoundError` | entity missing (`404`) | Never (unless state changes) | refresh lists, remove stale references | “Item no longer exists.” |
-| `ConflictError` | concurrent state conflict (`409`) | Retry once after refresh | re-fetch resource state, then retry | “This item changed. Refresh and retry.” |
-| `RateLimitError` | throttled (`429`) | Safe to retry with backoff | debounce UI actions and apply backoff | “Too many requests. Please wait a moment.” |
-| `NetworkError` | connectivity/transport failure | Safe to retry | keep pending action and offer retry | “Network issue. Check connection and retry.” |
-| `SdkError` | other normalized SDK failure | Case-by-case | inspect metadata, log details, show fallback | “Something went wrong. Try again.” |
+| `AuthExchangeError` | The SDK could not use the current token | No, not until sign-in | “Session expired. Sign in again.” | Clear host auth state and route to sign-in |
+| `AuthError` | The user is not authorized for this protected call | No, not until sign-in | “You need to sign in again.” | Stop protected retries and send user to sign-in |
+| `ValidationError` | The request input is not valid | No | “Check your input and try again.” | Show field-level validation feedback |
+| `NotFoundError` | The item or session is gone | Usually no | “That item no longer exists.” | Refresh lists and remove stale references |
+| `ConflictError` | The item changed while you were acting on it | Sometimes | “This item changed. Refresh and try again.” | Refresh data, then retry once |
+| `RateLimitError` | Too many requests happened too quickly | Yes, after waiting | “Too many requests. Please wait a moment.” | Back off and retry later |
+| `NetworkError` | A transport or connection problem happened | Yes | “Network issue. Check your connection and retry.” | Keep the action pending and offer retry |
+| `SdkError` | A normalized SDK failure happened | Depends | “Something went wrong. Try again.” | Log metadata and show fallback UI |
+
+## Upload task error codes
+
+| Upload task code | What it means | Safe to retry? | What the app should show | What the app should do |
+| - | - | - | - | - |
+| `storage/canceled` | The user canceled the task | No automatic retry | “Upload canceled.” | Treat the task as intentionally finished |
+| `storage/unauthenticated` | The session expired before the task could continue | No, not until sign-in | “Session expired. Sign in again.” | Route to sign-in, then start a new task |
+| `storage/unauthorized` | The user does not have permission for the target action | No | “You do not have permission for that upload.” | Stop retries and show a safe failure state |
+| `storage/retry-limit-exceeded` | Temporary failures kept happening until the retry budget was exhausted | Yes, but as a new task | “Upload failed after retrying. Try again.” | Let the user start a fresh task |
+| `storage/session-expired` | The upload session can no longer continue safely | No, not on the same task | “Upload expired. Start again.” | Start a new task from the beginning |
+| `storage/source-file-missing` | The local file is gone | No | “The file is no longer on this device.” | Ask the user to choose the file again |
+| `storage/source-file-changed` | The local file changed while uploading | No | “The file changed during upload.” | Ask the user to retry with the current file |
+| `storage/invalid-checksum` | The file hash no longer matches what the SDK expected | No | “The file changed before upload could finish.” | Re-read the file and start a new task |
+| `storage/unknown` | The SDK could not classify the failure exactly | Case-by-case | “Upload failed. Try again.” | Log details and let the user retry |
 
 ## Auth recovery flow
 

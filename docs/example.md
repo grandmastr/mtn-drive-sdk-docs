@@ -2,9 +2,11 @@
 title: Example
 ---
 
-This is a full React Native integration example you can copy and adapt in your host app, centered on the default `sdk.uploads.*` flow for file/folder backup and photo sync.
+Use this when you want a complete baseline implementation you can copy and adapt after you finish the Quickstart.
 
-It covers:
+Fast path: if you only need the shortest working setup, start with [React Native Quickstart](/docs/quickstart-react-native) first, then come back here for the full baseline.
+
+This example covers:
 
 1. installation
 2. token storage
@@ -12,7 +14,7 @@ It covers:
 4. file and device adapters
 5. `createRNClient(...)`
 6. backup and sync tasks
-7. optional low-level SDK modules
+7. advanced low-level SDK modules
 
 ## 1) Install
 
@@ -20,11 +22,11 @@ It covers:
 pnpm add @pipeopshq/mtn-rn-sdk@next @react-native-async-storage/async-storage
 ```
 
-`1.0.0` is currently published on the `next` dist-tag. `latest` still points to `0.2.0`, so this example keeps the explicit `@next` install.
+`1.0.1` is currently published on the `next` dist-tag. `latest` still points to `0.2.0`, so this example keeps the explicit `@next` install.
 
 ## 2) Build the host-app adapters
 
-Start with the auth and task-persistence adapters:
+Start with the auth and task-persistence adapters. This gives the SDK a place to read tokens and restore active uploads.
 
 ```ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -119,7 +121,7 @@ export const fileAdapter: FileAdapter = {
 
 ## 3) Create SDK client
 
-Create one shared SDK instance for the app runtime.
+Create one shared SDK instance for the app runtime. Keep this singleton for the life of the app process.
 
 ```ts
 import { createRNClient } from '@pipeopshq/mtn-rn-sdk';
@@ -137,6 +139,8 @@ export const sdk = createRNClient({
 
 ## 4) Save user token after host-app sign-in
 
+Store the MTN token as soon as your host app finishes sign-in so protected SDK calls can succeed.
+
 ```ts
 import { tokenStore } from './sdk-adapters';
 
@@ -149,6 +153,8 @@ export const onUserSignedIn = async (mtnAccessToken: string) => {
 ```
 
 ## 5) Run the default backup flow
+
+This is the main high-level path most apps should use.
 
 ```ts
 import { sdk } from './sdk-client';
@@ -185,6 +191,8 @@ export const startFileBackup = async (uri: string, parentId: string | null) => {
 
 ## 6) Restore and reattach after app restart
 
+This is how you reconnect your UI to in-progress tasks after the app reopens.
+
 ```ts
 import { sdk } from './sdk-client';
 
@@ -199,7 +207,7 @@ export const getRestoredBackups = async () => {
 };
 ```
 
-## 7) Optional low-level SDK modules
+## 7) Advanced low-level SDK modules
 
 Use `sdk.client.*` only when you need custom low-level control or other product surfaces outside normal backup/sync flows.
 

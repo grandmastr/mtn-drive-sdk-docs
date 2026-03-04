@@ -14,6 +14,17 @@ These methods are available through `sdk.client.photoBackup`. They are the advan
 
 `fileAdapter` is not required for these low-level methods. The default task-based path `sdk.uploads.backupAsset(...)` does require it.
 
+## Advanced page
+
+Use this page only when you need to manage photo sync sessions and media records step by step.
+
+## Most common methods
+
+- Register device: `photoBackup.registerDevice(...)`
+- Create session: `photoBackup.createSession(...)`
+- List synced media: `photoBackup.listMedia(...)`
+- Get download URL: `photoBackup.createDownloadUrl(...)`
+
 ## Default path for most apps
 
 For almost every integration, start photo sync with:

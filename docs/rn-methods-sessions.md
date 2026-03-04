@@ -9,6 +9,16 @@ Manage active user sessions, revoke individual sessions, and sign out other devi
 - SDK client created with `createRNClient(...)`
 - User token stored in `tokenStore`
 
+## Advanced page
+
+Use this page when you are building account-security or device-session management UI.
+
+## Most common methods
+
+- List sessions: `sessions.list()`
+- Revoke one session: `sessions.revoke(sessionId)`
+- Sign out other devices: `sessions.logoutOthers()`
+
 ## Module overview
 
 ```ts

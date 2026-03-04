@@ -11,7 +11,9 @@ Find each React Native SDK method by module. Start with the default upload path 
 
 ## How to use this page
 
-Use this page as the method index. Each module page documents every method with the same structure:
+If you are new to the SDK, read [RN Methods: Managed Uploads](/docs/rn-methods-managed-uploads) first and use this page as a lookup hub after that.
+
+Each module page documents every method with the same structure:
 
 1. What this method does
 2. When to call it
@@ -21,18 +23,28 @@ Use this page as the method index. Each module page documents every method with 
 6. Errors and handling
 7. Minimal example
 
+## Quick Method Index
+
+- Upload a file: `uploads.putFile(...)`
+- Track progress: `uploadTask.on('state_changed', ...)`
+- Pause, resume, or cancel: `uploadTask.pause()` / `resume()` / `cancel()`
+- Restore active uploads: `uploads.getActiveTasks()`
+- Browse files: `drive.listItems(...)`
+- Share files: `sharing.createShare(...)`
+- Check storage: `storage.summary()`
+
 ## Module map
 
 | Module | Methods | Page |
 | - | - | - |
 | `uploads` | 6 | [Managed upload methods](/docs/rn-methods-managed-uploads) |
 | `uploadTask` | 6 | [Managed upload methods](/docs/rn-methods-managed-uploads) |
-| `sessions` | 3 | [Sessions methods](/docs/rn-methods-sessions) |
-| `drive` | 28 | [Drive methods](/docs/rn-methods-drive) |
-| `sharing` | 11 | [Sharing methods](/docs/rn-methods-sharing) |
-| `bin` | 6 | [Bin methods](/docs/rn-methods-bin) |
-| `photoBackup` | 13 | [Photo backup methods (advanced)](/docs/rn-methods-photo-backup) |
-| `storage` | 2 | [Storage methods](/docs/rn-methods-storage) |
+| `sessions` | 3 | [Sessions methods (Advanced)](/docs/rn-methods-sessions) |
+| `drive` | 28 | [Drive methods (Advanced)](/docs/rn-methods-drive) |
+| `sharing` | 11 | [Sharing methods (Advanced)](/docs/rn-methods-sharing) |
+| `bin` | 6 | [Bin methods (Advanced)](/docs/rn-methods-bin) |
+| `photoBackup` | 13 | [Photo backup methods (Advanced)](/docs/rn-methods-photo-backup) |
+| `storage` | 2 | [Storage methods (Advanced)](/docs/rn-methods-storage) |
 
 ## Common types used across modules
 

@@ -9,6 +9,16 @@ Manage trashed items with simplified helper methods that map to drive trash oper
 - SDK client created with `createRNClient(...)`
 - User is authenticated
 
+## Advanced page
+
+Use this page when you are building a trash screen or recovery flow.
+
+## Most common methods
+
+- List trashed items: `bin.list(...)`
+- Restore one item: `bin.restore(itemId)`
+- Purge everything: `bin.purgeAll()`
+
 ## Module overview
 
 ```ts

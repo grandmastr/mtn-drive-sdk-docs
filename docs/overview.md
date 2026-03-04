@@ -2,24 +2,66 @@
 title: Overview
 ---
 
-## MTN Drive SDK
+Start here if you need to add MTN Drive uploads or photo backup to a React Native app without learning the whole SDK at once.
 
-This portal is the primary onboarding guide for teams integrating the React Native package:
+## What is MTN Drive?
 
-- `@pipeopshq/mtn-rn-sdk`
+MTN Drive is a cloud storage product for files, folders, and media backup.
 
-### What the SDK does
+This SDK gives your React Native app a safe way to connect to that storage layer, upload files from the device, and keep upload state in sync with your UI.
 
-- Accepts an MTN access token from the MTN app auth layer.
-- Manages auth/session handshake automatically for protected operations.
-- Lets you start file/folder backup and photo sync through `sdk.uploads.*`, with start/pause/resume/cancel and restore support.
-- Exposes typed modules for sessions, drive, sharing, bin, photo backup, and storage.
-- Provides typed error surfaces and retry behavior.
+## What this SDK helps you build
 
-### What this portal covers
+With `@pipeopshq/mtn-rn-sdk`, you can:
 
-- Installation from npm.
-- End-to-end React Native integration example.
-- React Native quickstart.
-- Module-level method maps.
-- Error handling behavior.
+- upload a file from the device into MTN Drive
+- back up photos and videos with a task-based API
+- show upload progress in real time
+- pause, resume, or cancel uploads
+- restore in-progress uploads after the app restarts
+- drop down to low-level modules only when you need advanced control
+
+```mermaid
+flowchart LR
+  A["Your React Native App"] --> B["MTN Drive SDK"]
+  B --> C["MTN Drive"]
+```
+
+## Who this is for
+
+This guide is for teams that:
+
+- are building a React Native app
+- already have a host-app sign-in flow
+- want the simplest path to file upload or media backup
+
+If you need a complete copy-paste setup, use the [React Native Quickstart](/docs/quickstart-react-native).
+
+## Start here
+
+- New to the SDK: start with [React Native Quickstart](/docs/quickstart-react-native)
+- Want copy-paste patterns: jump to [Common Recipes](/docs/common-recipes)
+- Already stuck on setup: go to [React Native Troubleshooting](/docs/rn-troubleshooting)
+- Need lower-level control: use the [API Reference](/docs/rn-sdk-methods-reference)
+
+## Your first upload in 30 seconds
+
+```ts
+const task = sdk.uploads.putFile({
+  uri: fileUri,
+  parentId: null,
+});
+
+task.on('state_changed', (snapshot) => {
+  console.log(snapshot.bytesTransferred, snapshot.totalBytes);
+});
+```
+
+This starts one upload task immediately and gives you live progress updates.
+
+## What to read next
+
+- [Install from npm](/docs/install-npm) if the SDK is not in your app yet
+- [React Native Quickstart](/docs/quickstart-react-native) for the full first working setup
+- [Common Recipes](/docs/common-recipes) for copy-paste task patterns
+- [Glossary](/docs/glossary) if any SDK term is unfamiliar

@@ -2,26 +2,81 @@
 title: Install from npm
 ---
 
-## 1) Install prerelease channel
+Install the current React Native SDK release line and verify it is ready before you move on to setup.
+
+## 1) Install
+
+Pick the package manager your app already uses:
+
+Using npm:
+
+```bash
+npm install @pipeopshq/mtn-rn-sdk@next
+```
+
+Using yarn:
+
+```bash
+yarn add @pipeopshq/mtn-rn-sdk@next
+```
+
+Using pnpm:
 
 ```bash
 pnpm add @pipeopshq/mtn-rn-sdk@next
 ```
 
-`@pipeopshq/mtn-rn-sdk` is the only package React Native apps need to install directly.
+Use `@next` right now because the task-based `1.0.1` line is published there, while `latest` still points to `0.2.0`.
 
-Current channel state:
+## 2) Add peer dependencies
 
-- `next` resolves to `1.0.0`
-- `latest` still resolves to `0.2.0`
+The Quickstart examples also use AsyncStorage for token and upload-task persistence:
 
-## 2) Confirm resolution
+```bash
+npm install @react-native-async-storage/async-storage
+```
+
+## 3) iOS native setup
+
+If your app targets iOS, install CocoaPods after the package install:
+
+```bash
+cd ios && pod install && cd ..
+```
+
+## 4) Verify install
+
+Check the installed package version:
+
+```bash
+npm view @pipeopshq/mtn-rn-sdk dist-tags --json
+```
+
+Expected result right now:
+
+- `next`: `1.0.1`
+- `latest`: `0.2.0`
+
+You can also confirm the package resolves in your app:
 
 ```bash
 pnpm why @pipeopshq/mtn-rn-sdk
 ```
 
-## Notes
+## 5) Common install problems
 
-- Use `@next` until `1.0.0` is promoted to `latest`.
-- Packages are published to npm as public packages.
+### “Cannot find module `@pipeopshq/mtn-rn-sdk`”
+
+The install did not complete in the app workspace. Re-run the install command from your React Native app root.
+
+### “Cannot find module `@react-native-async-storage/async-storage`”
+
+The SDK installed, but the Quickstart dependency did not. Install AsyncStorage before following the Quickstart.
+
+### iOS build still fails after install
+
+Run `pod install` inside the `ios` directory, then rebuild the app.
+
+### I installed `latest` by mistake
+
+Replace it with `@next`, because the beginner docs assume the current task-based `1.0.1` line.

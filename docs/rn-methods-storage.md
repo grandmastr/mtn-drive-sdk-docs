@@ -9,6 +9,15 @@ Read storage capacity and usage distribution data for dashboard and quota UX.
 - SDK client created with `createRNClient(...)`
 - User is authenticated
 
+## Advanced page
+
+Use this page when you are building quota indicators, dashboards, or storage breakdown UI.
+
+## Most common methods
+
+- Read storage summary: `storage.summary()`
+- Read storage distribution: `storage.distribution()`
+
 ## Module overview
 
 ```ts

@@ -10,6 +10,17 @@ Create, update, revoke, and resolve shares for private and public access flows.
 - User is authenticated for protected share methods
 - Item IDs available from drive results
 
+## Advanced page
+
+Use this page when you need explicit share-management workflows beyond the default upload path.
+
+## Most common methods
+
+- List shares: `sharing.listShares()`
+- Create a link share: `sharing.createShare(...)`
+- Revoke a share: `sharing.revokeShare(...)`
+- Resolve a public share: `sharing.resolvePublicShare(...)`
+
 ## Module overview
 
 ```ts

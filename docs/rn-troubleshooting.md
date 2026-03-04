@@ -2,7 +2,9 @@
 title: React Native Troubleshooting
 ---
 
-Diagnose common React Native SDK integration failures quickly with symptom-first checks and concrete fixes for the default managed upload path and the advanced low-level modules.
+Use this page when your first integration works only partially, or when uploads fail in ways that are hard to interpret from raw SDK errors.
+
+If an error word is unfamiliar, check [Glossary](/docs/glossary) before you debug the deeper integration details.
 
 ## Prerequisites
 
@@ -14,182 +16,249 @@ Diagnose common React Native SDK integration failures quickly with symptom-first
 ### Symptoms
 
 - Protected calls fail with `AuthExchangeError` or `AuthError`
-- Calls work only after app re-login
+- Calls work only after you sign in again
+
+### What it means
+
+The SDK cannot get a usable token from `tokenStore`, or the stored token is stale.
 
 ### Checks
 
 - Confirm `tokenStore.getTokens()` returns `{ accessToken: string }`
-- Confirm `accessToken` is not empty or stale
-- Confirm host app writes token to `tokenStore` after sign-in
+- Confirm the token is saved immediately after host-app sign-in
+- Confirm the token value is not empty
 
 ### Fix
 
-1. Save token immediately after sign-in.
-2. On auth errors, clear host auth state and route to sign-in.
-3. Retry protected call only after a new token is stored.
+1. Save the MTN token as soon as sign-in succeeds.
+2. Clear stale auth state when auth errors happen.
+3. Ask the user to sign in again before retrying protected calls.
+
+### What the app should do
+
+Show a re-login path, not a generic retry loop.
 
 ## Managed uploads fail during client initialization
 
 ### Symptoms
 
-- `createRNClient(...)` throws before the app can start uploads
+- `createRNClient(...)` throws before uploads start
 - Error includes `managed uploads require fileAdapter`
 - Error includes `managed uploads require uploads.taskStore`
 
+### What it means
+
+The task-based upload runtime was enabled, but the required upload adapters are missing.
+
 ### Checks
 
-- Confirm `createRNClient(...)` includes a real `fileAdapter`
+- Confirm `createRNClient(...)` includes `fileAdapter`
 - Confirm `createRNClient(...)` includes `uploads: { taskStore }`
-- Confirm you are using `createAsyncStorageUploadTaskStore(...)` or an equivalent `UploadTaskStore`
+- Confirm `uploads.taskStore` is a real persistent store
 
 ### Fix
 
 1. Add a real `fileAdapter`.
 2. Add `uploads.taskStore`.
-3. Recreate the SDK client once both are present.
+3. Recreate the client with both values present.
 
-## Managed photo backup uploads fail unexpectedly
+### What the app should do
+
+Block the upload UI and show a setup error to the integrator during development.
+
+## Managed photo backup uploads fail immediately
 
 ### Symptoms
 
 - `sdk.uploads.backupAsset(...)` throws immediately
 - Error includes `managed photo backup uploads require deviceIdProvider`
-- Photo backup session creation fails
+
+### What it means
+
+Photo backup needs a stable device ID, and the client was created without `deviceIdProvider`.
 
 ### Checks
 
-- Confirm `deviceIdProvider.getDeviceId()` returns a stable value across restarts
-- Confirm `createRNClient(...)` received a valid `deviceIdProvider`
-- Confirm file URIs are readable by your RN runtime
+- Confirm `deviceIdProvider` was passed into `createRNClient(...)`
+- Confirm `getDeviceId()` returns one stable value across restarts
 
 ### Fix
 
-1. Persist one installation ID and reuse it.
-2. Ensure the local URI is readable before starting the task.
-3. Re-run the task after adapter fixes.
+1. Add `deviceIdProvider`.
+2. Persist the first generated ID.
+3. Start a new backup task after the client is fixed.
+
+### What the app should do
+
+Show a “photo backup is not configured yet” message instead of repeatedly retrying the task.
 
 ## Multipart uploads fail with missing ETag
 
 ### Symptoms
 
 - Error includes `Multipart upload adapter must return etag`
-- Multipart tasks enter terminal error after part upload
+- Upload moves into terminal error
+
+### What it means
+
+Your `fileAdapter.upload(...)` completed a multipart part upload, but it did not return the `etag` the SDK needs to confirm that part.
 
 ### Checks
 
-- Confirm `fileAdapter.upload(...)` returns `etag` for ranged uploads
-- Confirm response headers expose ETag values in your fetch layer
-- Confirm `byteSize` matches the exact uploaded range length
+- Confirm your upload response exposes the `etag` header
+- Confirm ranged uploads return `etag`
+- Confirm `byteSize` matches the uploaded range length
 
 ### Fix
 
-1. Return `etag` from upload response headers.
-2. Keep `byteSize` accurate for each confirmed chunk.
-3. Retry by starting a new managed upload task after the adapter is fixed.
+1. Read the server `etag` header.
+2. Return it from `fileAdapter.upload(...)`.
+3. Start a new task after fixing the adapter.
 
-## Pause does not appear immediate
+### What the app should do
+
+Show a retry option for the developer or tester, not the end user, because this is usually an integration bug.
+
+## Pause feels delayed
 
 ### Symptoms
 
-- `task.pause()` returns `true`, but `bytesTransferred` can still increase briefly
-- The task emits `paused` after one or more extra progress jumps
+- `task.pause()` returns `true`
+- `bytesTransferred` can still rise briefly
+- The task becomes `paused` after a short delay
+
+### What it means
+
+The SDK stopped scheduling new work, but one in-flight request or part upload was already underway.
 
 ### Checks
 
 - Confirm `fileAdapter.upload(...)` forwards `signal`
-- Confirm your networking layer honors `AbortSignal`
-- Confirm the upload is multipart (several parts may already be in flight)
+- Confirm your networking layer actually respects `AbortSignal`
+- Confirm the upload is multipart
 
 ### Fix
 
-1. Honor `signal` in `fileAdapter.upload(...)`.
-2. Expect already in-flight parts to settle before the task emits `paused`.
-3. Bind UI to `task.snapshot.state`, not only the latest byte counter.
+1. Honor `signal` inside `fileAdapter.upload(...)`.
+2. Expect one short delay while in-flight work settles.
+3. Drive the UI from `snapshot.state`, not only the byte counter.
 
-## Restored uploads do not appear where you expect
+### What the app should do
+
+Show the task as “pausing” or keep the pause button disabled until the state changes to `paused`.
+
+## Restored uploads do not appear after restart
 
 ### Symptoms
 
-- Active uploads are missing after app restart
-- A second RN client instance can see tasks but cannot control them
+- Uploads were running before the app closed
+- `getActiveTasks()` returns an empty list after restart
+
+### What it means
+
+Task restore did not finish yet, the store is not persistent, or the app is using a different SDK instance.
 
 ### Checks
 
-- Confirm `await sdk.uploads.ready` runs before reading task state
-- Confirm all app screens share the same `uploads.taskStore`
-- Confirm you are using the original SDK client instance to control task state
+- Confirm you wait for `await sdk.uploads.ready`
+- Confirm `uploads.taskStore` writes real data
+- Confirm the app reuses one shared SDK instance
 
 ### Fix
 
-1. Await `sdk.uploads.ready` before calling `getActiveTasks()`.
-2. Use one shared SDK client instance per app runtime.
-3. Treat secondary clients as read-only mirrors only.
+1. Await `sdk.uploads.ready` before reading task state.
+2. Keep one shared client instance per app runtime.
+3. Verify your task store persists across app restarts.
 
-## Large restore-resume tests time out
+### What the app should do
+
+Delay rendering of “active uploads” until restore finishes.
+
+## Upload is stuck at 0%
 
 ### Symptoms
 
-- Verification tooling times out during `restore-resume`
-- Upload resumes correctly but the test process exits before completion
+- The task remains `running`
+- `bytesTransferred` stays at `0`
+- No terminal error appears
+
+### What it means
+
+The SDK started the task, but the source file is not being read correctly or the adapter is not making progress.
 
 ### Checks
 
-- Confirm the task is still progressing in bytes
-- Confirm the file is large enough to require multipart upload
-- Confirm test tooling timeout is long enough for the current network
+- Confirm the local URI is valid
+- Confirm `fileAdapter.getFileInfo(...)` can read the file
+- Confirm `fileAdapter.upload(...)` can read the same URI
+- Confirm `computeSha256(...)` is implemented
 
 ### Fix
 
-1. Use the current default harness timeout (`300000ms`) or a larger override if needed.
-2. Keep the persisted task store file between `restore-start` and `restore-resume`.
-3. Re-run `restore-resume` without changing the source file.
+1. Log and inspect the incoming URI.
+2. Verify the file exists before starting the task.
+3. Finish the `computeSha256(...)` implementation.
 
-## Trash actions return not found or conflict
+### What the app should do
+
+Show a non-terminal “upload is still starting” state briefly, then surface a retry path if no progress appears.
+
+## File missing or changed during upload
 
 ### Symptoms
 
-- Restore/purge fails for selected items
-- Item disappears between selection and action
+- Error code is `storage/source-file-missing`
+- Error code is `storage/source-file-changed`
+
+### What it means
+
+The local source file was deleted, moved, or changed while the task was running.
 
 ### Checks
 
-- Confirm selected IDs still exist in the latest trash page
-- Check for concurrent actions from other clients/devices
+- Confirm the URI still points to a real file
+- Confirm the file was not edited while uploading
+- Confirm `modifiedAtMs` is stable if you provide it
 
 ### Fix
 
-1. Refresh the trash list before retry.
-2. Remove stale IDs from local selection.
-3. Re-run the action with current IDs.
+1. Ask the user to choose the file again.
+2. Start a new task from the current file.
+3. Do not try to resume the old task automatically.
 
-## Public share token flow fails
+### What the app should do
+
+Explain that the source file changed and the user needs to retry with the current file.
+
+## Restore-resume tests are confusing after restart
 
 ### Symptoms
 
-- Public share resolve returns errors
-- Password prompts keep repeating
+- A restored task appears, but it does not immediately start moving
+- A tester expects the task to restart from zero
+
+### What it means
+
+Restore reattaches to the saved task state first. Progress may continue from a saved checkpoint rather than from the beginning.
 
 ### Checks
 
-- Confirm token value is exact and unmodified
-- Confirm password value matches expected format and user input
+- Confirm `autoRestore` is enabled
+- Confirm the same task ID is present after restart
+- Confirm the file still exists locally
 
 ### Fix
 
-1. Retry resolve with exact token/password values.
-2. Handle `RateLimitError` with exponential backoff.
-3. Show clear user feedback for invalid or expired tokens.
+1. Treat restored tasks as continuation, not fresh uploads.
+2. Reconnect the UI to the existing task object.
+3. Start a brand-new task only if the restored task ended in error.
 
-## Debug checklist before filing an issue
+### What the app should do
 
-- SDK package version in app
-- Method name and input shape used
-- Error name/message/status/code
-- Whether failure is auth, validation, network, or conflict
-- Minimal reproducible sequence
+Show the restored task as “resuming” and keep its existing progress rather than resetting the progress bar.
 
 ## Related pages
 
-- [RN Methods: Managed Uploads](/docs/rn-methods-managed-uploads)
-- [React Native SDK Methods Reference](/docs/rn-sdk-methods-reference)
 - [Error Handling and Retry Playbook](/docs/error-retry-matrix)
+- [Common Recipes](/docs/common-recipes)
+- [React Native Required Interfaces](/docs/rn-interfaces)

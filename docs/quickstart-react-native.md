@@ -2,27 +2,60 @@
 title: React Native Quickstart
 ---
 
-Set up `@pipeopshq/mtn-rn-sdk` in a React Native app using the default `sdk.uploads.*` path first. For most apps, this is the simple path for file/folder backup and photo sync.
+Get one working MTN Drive upload into your React Native app in a few minutes, using the default `sdk.uploads.*` task API.
 
-## Prerequisites
+## Before You Start
 
-- React Native app running on iOS or Android
-- Host-app sign-in flow that can supply an MTN access token
-- Persistent storage for tokens and upload task state (for example, AsyncStorage)
-- A file layer that can read local URIs, hash bytes, and upload ranged chunks
-- Device ID persistence only if you will use photo sync (`sdk.uploads.backupAsset(...)`) or low-level `sdk.client.photoBackup.*`
+You should already have:
+
+- a React Native app running on iOS or Android
+- a host-app sign-in flow that can provide an MTN access token
+- AsyncStorage available for token and task persistence
+
+You will build:
+
+- one shared SDK client
+- one file upload task
+- one verification step to confirm the SDK is wired correctly
+
+If any of the terms below are new, skim [Concepts](/docs/concepts) or [Glossary](/docs/glossary) first.
 
 ## 1) Install
+
+Install the SDK and the storage dependency used in this quickstart:
 
 ```bash
 pnpm add @pipeopshq/mtn-rn-sdk@next @react-native-async-storage/async-storage
 ```
 
-`1.0.0` is currently published on the `next` dist-tag. `latest` still points to `0.2.0`, so keep using `@next` for the new upload path.
+Right now, `@next` resolves to `1.0.1`, while `latest` still resolves to `0.2.0`.
+
+If you target iOS, also run:
+
+```bash
+cd ios && pod install && cd ..
+```
+
+### How to verify this worked
+
+Run:
+
+```bash
+pnpm why @pipeopshq/mtn-rn-sdk
+```
+
+You should see the package in your app dependency tree.
 
 ## 2) Configure
 
-Create the required baseline adapters:
+Create the four host-app adapters below.
+
+- `tokenStore`: always required for authenticated calls
+- `fileAdapter`: required for task-based uploads
+- `uploads.taskStore`: required for task restore
+- `deviceIdProvider`: required only for `sdk.uploads.backupAsset(...)`
+
+Create `sdk-adapters.ts`:
 
 ```ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -80,8 +113,7 @@ export const fileAdapter: FileAdapter = {
   },
 
   async computeSha256(uri) {
-    // Replace with your RN hashing utility.
-    // Must return lowercase 64-char SHA-256 hex.
+    // Replace this with your real RN hashing utility.
     throw new Error(`computeSha256 not implemented for ${uri}`);
   },
 
@@ -111,13 +143,23 @@ export const fileAdapter: FileAdapter = {
 };
 ```
 
-`fileAdapter` and `uploads.taskStore` are the required pair for the default upload path. `deviceIdProvider` is only required when you call `sdk.uploads.backupAsset(...)` for photo sync or use low-level `sdk.client.photoBackup.*`.
+On iOS you will usually see `file://...` URIs. On Android you may see `file://...` or `content://...`, so make sure your `fileAdapter` can read the URIs your app actually receives.
 
-File adapter details (range handling, `AbortSignal`, `etag`, and `modifiedAtMs`) are documented in [React Native Required Interfaces](/docs/rn-interfaces).
+### How to verify this worked
+
+Import the file and make sure TypeScript accepts:
+
+```ts
+import { tokenStore, fileAdapter, uploadTaskStore } from './sdk-adapters';
+```
+
+If that import type-checks, your baseline adapters are in place.
 
 ## 3) Initialize
 
-Create and export one SDK client for the app runtime.
+Create one shared SDK client for the app runtime.
+
+For basic file uploads:
 
 ```ts
 import { createRNClient } from '@pipeopshq/mtn-rn-sdk';
@@ -132,11 +174,16 @@ export const sdk = createRNClient({
 });
 ```
 
-If you will use photo sync, add `deviceIdProvider`:
+If you will also run photo backup, include `deviceIdProvider`:
 
 ```ts
 import { createRNClient } from '@pipeopshq/mtn-rn-sdk';
-import { deviceIdProvider, fileAdapter, tokenStore, uploadTaskStore } from './sdk-adapters';
+import {
+  deviceIdProvider,
+  fileAdapter,
+  tokenStore,
+  uploadTaskStore,
+} from './sdk-adapters';
 
 export const sdk = createRNClient({
   tokenStore,
@@ -148,12 +195,7 @@ export const sdk = createRNClient({
 });
 ```
 
-`createRNClient(...)` returns:
-
-- `sdk.uploads` for the default file/folder backup and photo sync flow
-- `sdk.client` for typed low-level modules (`sessions`, `drive`, `sharing`, `bin`, `photoBackup`, `storage`)
-
-Store the MTN token after host-app sign-in:
+After your host app signs a user in, save the MTN token:
 
 ```ts
 import { tokenStore } from './sdk-adapters';
@@ -166,9 +208,19 @@ export const onHostAppSignedIn = async (mtnAccessToken: string) => {
 };
 ```
 
+### How to verify this worked
+
+This import should resolve cleanly:
+
+```ts
+import { sdk } from './sdk-client';
+```
+
+If `sdk` is defined, the client is wired into your app.
+
 ## 4) Verify
 
-Run this once during app bootstrap. It restores in-progress backup tasks, checks auth, reads usage, and fetches the first drive page.
+Run one bootstrap check after app start:
 
 ```ts
 import { sdk } from './sdk-client';
@@ -179,98 +231,79 @@ export const verifySdkSetup = async () => {
   const sessions = await sdk.client.sessions.list();
   const summary = await sdk.client.storage.summary();
   const drivePage = await sdk.client.drive.listItems({ limit: 20 });
-  const activeUploads = sdk.uploads.getActiveTasks();
 
   return {
     sessionsCount: sessions.length,
     summary,
     drivePage,
-    activeUploadsCount: activeUploads.length,
+    activeUploadsCount: sdk.uploads.getActiveTasks().length,
   };
 };
 ```
 
-If verification fails with `AuthExchangeError` or `AuthError`, clear host-app auth state and route the user to sign-in.
+If this fails with `AuthExchangeError` or `AuthError`, your app is not providing a usable token yet. Save a fresh token, then run the check again.
 
-## 5) Next steps
+### How to verify this worked
 
-- Start file/folder backup with `sdk.uploads.putFile(...)`
-- Start photo sync with `sdk.uploads.backupAsset(...)`
-- Reattach UI after app restart with `sdk.uploads.getActiveTasks()`
-- Use `sdk.client.*` only for advanced low-level control
+The returned object should contain:
 
-### File/folder backup (Recommended)
+- a session count
+- a storage summary
+- a drive page payload
+- an active upload count
+
+That confirms auth, low-level modules, and task restore are all connected.
+
+## 5) Upload your first file
+
+Start one file upload task:
 
 ```ts
-export const startFileBackup = (uri: string, parentId: string | null) => {
+import { sdk } from './sdk-client';
+
+export const startFileUpload = (uri: string) => {
   const task = sdk.uploads.putFile({
     uri,
-    parentId,
+    parentId: null,
   });
 
   task.on('state_changed', (snapshot) => {
-    console.log('file backup progress', snapshot.bytesTransferred, snapshot.totalBytes);
+    console.log(snapshot.state, snapshot.bytesTransferred, snapshot.totalBytes);
   });
 
   return task;
 };
 ```
 
-### Photo sync (Optional)
+For photo backup, use the same task model:
 
 ```ts
-export const startPhotoSync = (uri: string) => {
-  const task = sdk.uploads.backupAsset({
-    uri,
-    capturedAt: new Date().toISOString(),
-  });
-
-  task.on('state_changed', (snapshot) => {
-    console.log('photo sync progress', snapshot.bytesTransferred, snapshot.totalBytes);
-  });
-
-  return task;
-};
+const task = sdk.uploads.backupAsset({
+  uri,
+  capturedAt: new Date().toISOString(),
+});
 ```
 
-### Advanced low-level module call (Optional)
+### How to verify this worked
 
-```ts
-export const createLinkShare = async (itemId: string) => {
-  return sdk.client.sharing.createShare({
-    itemId,
-    permission: 'VIEW',
-    targetType: 'LINK',
-  });
-};
-```
+You should see `state_changed` snapshots while the upload runs, and the task should eventually finish with:
 
-### Error mapping pattern (Optional)
+- `success` for a completed upload
+- `error` for a failed upload
+- `canceled` only when you cancel it yourself
 
-```ts
-export const toDisplayError = (error: unknown) => {
-  if (!(error instanceof Error)) {
-    return { type: 'UnknownError', message: 'Unknown error' };
-  }
+## 6) Next steps
 
-  const withMeta = error as Error & {
-    status?: number;
-    code?: string;
-  };
+- Use [Common Recipes](/docs/common-recipes) for copy-paste upload patterns
+- Use [React Native Troubleshooting](/docs/rn-troubleshooting) if setup is failing
+- Use [React Native Required Interfaces](/docs/rn-interfaces) if you need adapter contract details
+- Use [RN Methods: Managed Uploads](/docs/rn-methods-managed-uploads) if you want the full task API reference
 
-  return {
-    type: error.name,
-    message: error.message,
-    status: withMeta.status,
-    code: withMeta.code,
-  };
-};
-```
+## Success checklist
 
-## Related pages
-
-- [React Native Required Interfaces](/docs/rn-interfaces)
-- [RN Methods: Managed Uploads](/docs/rn-methods-managed-uploads)
-- [React Native SDK Methods Reference](/docs/rn-sdk-methods-reference)
-- [Error Handling and Retry Playbook](/docs/error-retry-matrix)
-- [React Native Troubleshooting](/docs/rn-troubleshooting)
+- SDK installed from `@next`
+- AsyncStorage installed
+- One shared SDK client created
+- `await sdk.uploads.ready` runs during bootstrap
+- `sdk.uploads.putFile(...)` starts a task
+- The task emits progress snapshots

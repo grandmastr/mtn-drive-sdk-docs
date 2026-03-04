@@ -12,6 +12,18 @@ Browse files and folders, run uploads, fetch signed URLs, update metadata, and m
 
 This page documents the low-level drive module, including the manual upload-session methods. New integrations should use `sdk.uploads.putFile(...)` unless they need custom protocol control.
 
+## Advanced page
+
+Use this page only when you need low-level drive control beyond the default task-based upload path.
+
+## Most common methods
+
+- List items: `drive.listItems(...)`
+- Search: `drive.search(...)`
+- Read metadata: `drive.getMetadata(itemId)`
+- Get a download URL: `drive.getDownloadUrl(itemId)`
+- Create folders: `drive.createFolder(...)`
+
 ## Module overview
 
 ```ts

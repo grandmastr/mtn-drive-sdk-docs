@@ -2,6 +2,8 @@
 title: Release Channels and Versioning
 ---
 
+This page is release metadata for package consumers and release operators. You do not need it to finish the Quickstart.
+
 ## Package naming
 
 - `@pipeopshq/mtn-rn-sdk`
@@ -11,7 +13,7 @@ title: Release Channels and Versioning
 - Active release channel: `next`
 - Publish target: npm (`registry.npmjs.org`)
 - Access: public
-- Current `next`: `1.0.0`
+- Current `next`: `1.0.1`
 - Current `latest`: `0.2.0`
 
 ## Release flow
@@ -26,4 +28,4 @@ title: Release Channels and Versioning
 pnpm add @pipeopshq/mtn-rn-sdk@next
 ```
 
-Use `@next` until `1.0.0` is promoted to the `latest` dist-tag.
+Use `@next` while the task-based `1.0.1` line remains on the `next` dist-tag.

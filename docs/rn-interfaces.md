@@ -10,9 +10,36 @@ Implement the host-app adapters correctly so the SDK can manage auth, upload-tas
 - You can persist small JSON payloads in app storage
 - You can read files and upload bytes from local URIs
 
+## Do I need this page?
+
+Read this page when you are wiring the SDK into a real app and need to implement or debug the required adapters.
+
+If you only want the shortest path to a working upload, follow [React Native Quickstart](/docs/quickstart-react-native) first and come back here only if setup fails.
+
+If any adapter term is unfamiliar, check [Glossary](/docs/glossary) first.
+
+## Adapter summary
+
+| Adapter | What it does | When it is required |
+| - | - | - |
+| `tokenStore` | Stores the signed-in user's MTN token | Always |
+| `fileAdapter` | Reads files, hashes them, and uploads bytes | Required for `sdk.uploads.*` |
+| `uploads.taskStore` | Restores active upload tasks after app restart | Required for `sdk.uploads.*` |
+| `deviceIdProvider` | Returns one stable device ID | Required only for photo backup |
+
 ## 1) `tokenStore`
 
-Use `tokenStore` to let the SDK read, persist, and clear host-app auth tokens.
+### What it does
+
+`tokenStore` lets the SDK read, persist, and clear host-app auth tokens.
+
+### When it is required
+
+This adapter is always required because every protected SDK call depends on it.
+
+### Common mistake
+
+Writing the token too late. Save the MTN token immediately after host-app sign-in.
 
 ### Signature
 
@@ -46,7 +73,7 @@ interface AuthTokens {
 | `setTokens(tokens)` | Persist exactly the provided payload. |
 | `clear()` | Remove token state so next `getTokens()` returns signed-out state. |
 
-### Minimal implementation
+### Starter implementation
 
 ```ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -70,9 +97,19 @@ export const tokenStore = {
 
 ## 2) `deviceIdProvider` (photo backup only)
 
-Use `deviceIdProvider` to return a stable per-install identifier.
+### What it does
+
+`deviceIdProvider` returns a stable per-install identifier.
 
 This adapter is optional unless you call `sdk.uploads.backupAsset(...)` or `sdk.client.photoBackup.*`.
+
+### When it is required
+
+Only add this when you need photo backup or low-level photo sync APIs.
+
+### Common mistake
+
+Generating a new ID every time. The value must stay stable across app restarts.
 
 ### Signature
 
@@ -94,7 +131,7 @@ interface DeviceIdProvider {
 - Do not regenerate on every call.
 - Generate once and persist.
 
-### Minimal implementation
+### Starter implementation
 
 ```ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -115,9 +152,19 @@ export const deviceIdProvider = {
 
 ## 3) `uploadTaskStore` (managed uploads only)
 
-Use `uploads.taskStore` to persist active managed upload tasks so `sdk.uploads.ready` can restore them after app restart.
+### What it does
+
+`uploads.taskStore` persists active managed upload tasks so `sdk.uploads.ready` can restore them after app restart.
 
 This adapter is required when you configure the managed `sdk.uploads.*` path.
+
+### When it is required
+
+Required for task-based uploads. If you skip it, `sdk.uploads` cannot run.
+
+### Common mistake
+
+Reading tasks before `await sdk.uploads.ready`. The store may be correct, but restore has not finished yet.
 
 ### Signature
 
@@ -145,7 +192,7 @@ interface UploadTaskStore {
 | `save(record)` | Persist the full record exactly as provided. |
 | `remove(taskId)` | Remove the persisted record for that task ID. |
 
-### Minimal implementation
+### Starter implementation
 
 For React Native, use the built-in helper:
 
@@ -164,9 +211,19 @@ export const uploadTaskStore = createAsyncStorageUploadTaskStore(AsyncStorage);
 
 ## 4) `fileAdapter` (managed uploads only)
 
-Use `fileAdapter` to provide file metadata, content hashing, and byte upload operations.
+### What it does
+
+`fileAdapter` provides file metadata, content hashing, and byte upload operations.
 
 This adapter is required when you configure the managed `sdk.uploads.*` path.
+
+### When it is required
+
+Required for task-based uploads. Without it, the SDK cannot inspect or transfer local files.
+
+### Common mistake
+
+Returning the wrong `etag` behavior for multipart uploads. If your adapter uploads a range, it must return the server `etag` for that part.
 
 ### Plain-English meaning
 
