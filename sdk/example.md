@@ -4,7 +4,7 @@ title: Example
 
 Use this when you want a complete baseline implementation you can copy and adapt after you finish the Quickstart.
 
-Fast path: if you only need the shortest working setup, start with [React Native Quickstart](/docs/quickstart-react-native) first, then come back here for the full baseline.
+Fast path: if you only need the shortest working setup, start with [React Native Quickstart](/sdk/quickstart-react-native) first, then come back here for the full baseline.
 
 This example covers:
 
@@ -257,7 +257,7 @@ export const toDisplayError = (error: unknown) => {
 
 Use this page with:
 
-- [React Native Quickstart](/docs/quickstart-react-native) for fast setup
-- [React Native Required Interfaces](/docs/rn-interfaces) for adapter contract details
-- [RN Methods: Managed Uploads](/docs/rn-methods-managed-uploads) for the default backup and sync path
-- [React Native SDK Methods Reference](/docs/rn-sdk-methods-reference) for the full method index
+- [React Native Quickstart](/sdk/quickstart-react-native) for fast setup
+- [React Native Required Interfaces](/sdk/rn-interfaces) for adapter contract details
+- [RN Methods: Managed Uploads](/sdk/rn-methods-managed-uploads) for the default backup and sync path
+- [React Native SDK Methods Reference](/sdk/rn-sdk-methods-reference) for the full method index

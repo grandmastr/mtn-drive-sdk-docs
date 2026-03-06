@@ -9,6 +9,8 @@
     "build": "docusaurus build",
     "build:ci": "pnpm build",
     "check:rn-docs": "node ./scripts/rn-docs-conformance.mjs",
+    "check:api-docs": "node ./scripts/api-docs-conformance.mjs",
+    "check:docs": "pnpm check:rn-docs && pnpm check:api-docs",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
@@ -16,7 +18,7 @@
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
     "typecheck": "tsc",
-    "lint:md": "markdownlint-cli2 \"README.md\" \"docs/**/*.md\" \"docs/**/*.mdx\""
+    "lint:md": "markdownlint-cli2 \"README.md\" \"sdk/**/*.md\" \"sdk/**/*.mdx\" \"api/**/*.md\" \"api/**/*.mdx\""
   },
   "dependencies": {
     "@docusaurus/core": "3.7.0",

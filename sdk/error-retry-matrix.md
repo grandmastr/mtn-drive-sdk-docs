@@ -6,7 +6,7 @@ Handle SDK errors predictably with plain-English UI messaging, safe retry behavi
 
 ## Prerequisites
 
-- You completed [React Native Quickstart](/docs/quickstart-react-native)
+- You completed [React Native Quickstart](/sdk/quickstart-react-native)
 - You use a shared app-level error mapping utility
 
 ## Retry model

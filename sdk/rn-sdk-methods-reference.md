@@ -6,12 +6,12 @@ Find each React Native SDK method by module. Start with the default upload path 
 
 ## Prerequisites
 
-- You completed [React Native Quickstart](/docs/quickstart-react-native)
-- You implemented required adapters in [React Native Required Interfaces](/docs/rn-interfaces)
+- You completed [React Native Quickstart](/sdk/quickstart-react-native)
+- You implemented required adapters in [React Native Required Interfaces](/sdk/rn-interfaces)
 
 ## How to use this page
 
-If you are new to the SDK, read [RN Methods: Managed Uploads](/docs/rn-methods-managed-uploads) first and use this page as a lookup hub after that.
+If you are new to the SDK, read [RN Methods: Managed Uploads](/sdk/rn-methods-managed-uploads) first and use this page as a lookup hub after that.
 
 Each module page documents every method with the same structure:
 
@@ -37,14 +37,14 @@ Each module page documents every method with the same structure:
 
 | Module | Methods | Page |
 | - | - | - |
-| `uploads` | 6 | [Managed upload methods](/docs/rn-methods-managed-uploads) |
-| `uploadTask` | 6 | [Managed upload methods](/docs/rn-methods-managed-uploads) |
-| `sessions` | 3 | [Sessions methods (Advanced)](/docs/rn-methods-sessions) |
-| `drive` | 28 | [Drive methods (Advanced)](/docs/rn-methods-drive) |
-| `sharing` | 11 | [Sharing methods (Advanced)](/docs/rn-methods-sharing) |
-| `bin` | 6 | [Bin methods (Advanced)](/docs/rn-methods-bin) |
-| `photoBackup` | 13 | [Photo backup methods (Advanced)](/docs/rn-methods-photo-backup) |
-| `storage` | 2 | [Storage methods (Advanced)](/docs/rn-methods-storage) |
+| `uploads` | 6 | [Managed upload methods](/sdk/rn-methods-managed-uploads) |
+| `uploadTask` | 6 | [Managed upload methods](/sdk/rn-methods-managed-uploads) |
+| `sessions` | 3 | [Sessions methods (Advanced)](/sdk/rn-methods-sessions) |
+| `drive` | 28 | [Drive methods (Advanced)](/sdk/rn-methods-drive) |
+| `sharing` | 11 | [Sharing methods (Advanced)](/sdk/rn-methods-sharing) |
+| `bin` | 6 | [Bin methods (Advanced)](/sdk/rn-methods-bin) |
+| `photoBackup` | 13 | [Photo backup methods (Advanced)](/sdk/rn-methods-photo-backup) |
+| `storage` | 2 | [Storage methods (Advanced)](/sdk/rn-methods-storage) |
 
 ## Common types used across modules
 
@@ -121,6 +121,6 @@ Use `uploads.backupAsset(...)` by default for photo and video sync. Drop down to
 
 ## Related pages
 
-- [RN Methods: Managed Uploads](/docs/rn-methods-managed-uploads)
-- [Error Handling and Retry Playbook](/docs/error-retry-matrix)
-- [React Native Troubleshooting](/docs/rn-troubleshooting)
+- [RN Methods: Managed Uploads](/sdk/rn-methods-managed-uploads)
+- [Error Handling and Retry Playbook](/sdk/error-retry-matrix)
+- [React Native Troubleshooting](/sdk/rn-troubleshooting)

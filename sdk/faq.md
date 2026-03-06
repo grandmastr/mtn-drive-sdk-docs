@@ -24,7 +24,7 @@ The most common causes are:
 - you read tasks before `await sdk.uploads.ready`
 - you are creating multiple SDK instances
 
-See [React Native Troubleshooting](/docs/rn-troubleshooting) for the full checklist.
+See [React Native Troubleshooting](/sdk/rn-troubleshooting) for the full checklist.
 
 ## Why does photo backup need `deviceIdProvider`?
 
@@ -34,8 +34,8 @@ Photo backup flows track work per device. The SDK needs one stable device ID so 
 
 Start with:
 
-1. [Overview](/docs/overview)
-2. [Install from npm](/docs/install-npm)
-3. [React Native Quickstart](/docs/quickstart-react-native)
+1. [Overview](/sdk/overview)
+2. [Install from npm](/sdk/install-npm)
+3. [React Native Quickstart](/sdk/quickstart-react-native)
 
-If you only need copy-paste code after that, go to [Common Recipes](/docs/common-recipes).
+If you only need copy-paste code after that, go to [Common Recipes](/sdk/common-recipes).

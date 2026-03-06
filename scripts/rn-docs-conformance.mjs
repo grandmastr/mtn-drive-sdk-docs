@@ -8,34 +8,34 @@ const sdkRoot = process.env.SDK_REPO_PATH
   ? path.resolve(process.env.SDK_REPO_PATH)
   : path.resolve(docsRoot, '../mtn-drive-sdk');
 
-const docsOverviewFile = path.join(docsRoot, 'docs', 'overview.md');
-const docsInstallFile = path.join(docsRoot, 'docs', 'install-npm.md');
-const docsMethodsHubFile = path.join(docsRoot, 'docs', 'rn-sdk-methods-reference.md');
-const docsQuickstartFile = path.join(docsRoot, 'docs', 'quickstart-react-native.md');
-const docsInterfacesFile = path.join(docsRoot, 'docs', 'rn-interfaces.md');
-const docsManagedUploadsFile = path.join(docsRoot, 'docs', 'rn-methods-managed-uploads.md');
-const docsTroubleshootingFile = path.join(docsRoot, 'docs', 'rn-troubleshooting.md');
-const docsErrorsFile = path.join(docsRoot, 'docs', 'error-retry-matrix.md');
-const docsReleaseFile = path.join(docsRoot, 'docs', 'release-versioning.md');
-const docsSidebarFile = path.join(docsRoot, 'sidebars.ts');
+const docsOverviewFile = path.join(docsRoot, 'sdk', 'overview.md');
+const docsInstallFile = path.join(docsRoot, 'sdk', 'install-npm.md');
+const docsMethodsHubFile = path.join(docsRoot, 'sdk', 'rn-sdk-methods-reference.md');
+const docsQuickstartFile = path.join(docsRoot, 'sdk', 'quickstart-react-native.md');
+const docsInterfacesFile = path.join(docsRoot, 'sdk', 'rn-interfaces.md');
+const docsManagedUploadsFile = path.join(docsRoot, 'sdk', 'rn-methods-managed-uploads.md');
+const docsTroubleshootingFile = path.join(docsRoot, 'sdk', 'rn-troubleshooting.md');
+const docsErrorsFile = path.join(docsRoot, 'sdk', 'error-retry-matrix.md');
+const docsReleaseFile = path.join(docsRoot, 'sdk', 'release-versioning.md');
+const docsSidebarFile = path.join(docsRoot, 'sidebars-sdk.ts');
 
 const methodDocFiles = [
-  path.join(docsRoot, 'docs', 'rn-methods-sessions.md'),
-  path.join(docsRoot, 'docs', 'rn-methods-drive.md'),
-  path.join(docsRoot, 'docs', 'rn-methods-sharing.md'),
-  path.join(docsRoot, 'docs', 'rn-methods-bin.md'),
-  path.join(docsRoot, 'docs', 'rn-methods-photo-backup.md'),
-  path.join(docsRoot, 'docs', 'rn-methods-storage.md'),
+  path.join(docsRoot, 'sdk', 'rn-methods-sessions.md'),
+  path.join(docsRoot, 'sdk', 'rn-methods-drive.md'),
+  path.join(docsRoot, 'sdk', 'rn-methods-sharing.md'),
+  path.join(docsRoot, 'sdk', 'rn-methods-bin.md'),
+  path.join(docsRoot, 'sdk', 'rn-methods-photo-backup.md'),
+  path.join(docsRoot, 'sdk', 'rn-methods-storage.md'),
   docsManagedUploadsFile,
 ];
 
 const advancedMethodFiles = [
-  path.join(docsRoot, 'docs', 'rn-methods-sessions.md'),
-  path.join(docsRoot, 'docs', 'rn-methods-drive.md'),
-  path.join(docsRoot, 'docs', 'rn-methods-sharing.md'),
-  path.join(docsRoot, 'docs', 'rn-methods-bin.md'),
-  path.join(docsRoot, 'docs', 'rn-methods-photo-backup.md'),
-  path.join(docsRoot, 'docs', 'rn-methods-storage.md'),
+  path.join(docsRoot, 'sdk', 'rn-methods-sessions.md'),
+  path.join(docsRoot, 'sdk', 'rn-methods-drive.md'),
+  path.join(docsRoot, 'sdk', 'rn-methods-sharing.md'),
+  path.join(docsRoot, 'sdk', 'rn-methods-bin.md'),
+  path.join(docsRoot, 'sdk', 'rn-methods-photo-backup.md'),
+  path.join(docsRoot, 'sdk', 'rn-methods-storage.md'),
 ];
 
 const pagesRequiringSetupContext = [
@@ -124,13 +124,13 @@ const requiredErrorClasses = [
 ];
 
 const requiredHubLinks = [
-  '/docs/rn-methods-sessions',
-  '/docs/rn-methods-drive',
-  '/docs/rn-methods-sharing',
-  '/docs/rn-methods-bin',
-  '/docs/rn-methods-photo-backup',
-  '/docs/rn-methods-storage',
-  '/docs/rn-methods-managed-uploads',
+  '/sdk/rn-methods-sessions',
+  '/sdk/rn-methods-drive',
+  '/sdk/rn-methods-sharing',
+  '/sdk/rn-methods-bin',
+  '/sdk/rn-methods-photo-backup',
+  '/sdk/rn-methods-storage',
+  '/sdk/rn-methods-managed-uploads',
 ];
 
 const bannedPatterns = [
@@ -222,7 +222,7 @@ const requiredFiles = [
   docsReleaseFile,
   docsSidebarFile,
   ...methodDocFiles,
-  ...supportDocIds.map((docId) => path.join(docsRoot, 'docs', `${docId}.md`)),
+  ...supportDocIds.map((docId) => path.join(docsRoot, 'sdk', `${docId}.md`)),
 ];
 
 for (const file of requiredFiles) {

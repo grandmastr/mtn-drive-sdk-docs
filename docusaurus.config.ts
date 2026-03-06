@@ -3,13 +3,13 @@ import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
-  title: 'MTN Drive SDK',
-  tagline: 'SDK documentation for partner engineering teams',
+  title: 'MTN Drive Documentation',
+  tagline: 'Partner documentation for the MTN Drive SDK and API',
   favicon: 'img/favicon.ico',
   url: 'https://mtn-drive-sdk-docs.pipeops.app',
   baseUrl: '/',
   organizationName: 'PipeOpsHQ',
-  projectName: 'mtn-drive-sdk',
+  projectName: 'mtn-drive-documentation',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'throw',
   i18n: {
@@ -24,11 +24,7 @@ const config: Config = {
     [
       'classic',
       {
-        docs: {
-          sidebarPath: './sidebars.ts',
-          routeBasePath: 'docs',
-          editUrl: 'https://github.com/PipeOpsHQ/mtn-drive-sdk/tree/main/docs-site/',
-        },
+        docs: false,
         blog: false,
         theme: {
           customCss: './src/css/custom.css',
@@ -36,25 +32,44 @@ const config: Config = {
       } satisfies Preset.Options,
     ],
   ],
+  plugins: [
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'sdk',
+        path: './sdk',
+        routeBasePath: 'sdk',
+        sidebarPath: './sidebars-sdk.ts',
+      },
+    ],
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'api',
+        path: './api',
+        routeBasePath: 'api',
+        sidebarPath: './sidebars-api.ts',
+      },
+    ],
+  ],
   themeConfig: {
     image: 'img/docusaurus-social-card.jpg',
     navbar: {
-      title: 'MTN Drive SDK',
+      title: 'MTN Drive Docs',
       logo: {
-        alt: 'MTN Drive SDK',
+        alt: 'MTN Drive Docs',
         src: 'img/logo.svg',
       },
       items: [
         {
-          type: 'doc',
-          docId: 'overview',
+          to: '/sdk/overview',
           position: 'left',
-          label: 'Documentation',
+          label: 'SDK Docs',
         },
         {
-          href: 'https://github.com/PipeOpsHQ/mtn-drive-sdk',
-          label: 'GitHub',
-          position: 'right',
+          to: '/api/overview',
+          position: 'left',
+          label: 'API Docs',
         },
       ],
     },
@@ -66,11 +81,36 @@ const config: Config = {
           items: [
             {
               label: 'Overview',
-              to: '/docs/overview',
+              to: '/sdk/overview',
             },
             {
               label: 'Quickstart (React Native)',
-              to: '/docs/quickstart-react-native',
+              to: '/sdk/quickstart-react-native',
+            },
+          ],
+        },
+        {
+          title: 'API Docs',
+          items: [
+            {
+              label: 'API Overview',
+              to: '/api/overview',
+            },
+            {
+              label: 'Authentication',
+              to: '/api/authentication',
+            },
+            {
+              label: 'Drive',
+              to: '/api/drive',
+            },
+            {
+              label: 'Photo Backup',
+              to: '/api/photo-backup',
+            },
+            {
+              label: 'Managed Uploads',
+              to: '/api/managed-uploads',
             },
           ],
         },

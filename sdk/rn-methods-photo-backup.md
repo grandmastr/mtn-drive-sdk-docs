@@ -8,7 +8,7 @@ Use `sdk.uploads.backupAsset(...)` for normal photo and video sync. This page co
 
 - SDK client created with `createRNClient(...)`
 - `deviceIdProvider` configured in `createRNClient(...)`
-- For the default task-based upload path, see [RN Methods: Managed Uploads](/docs/rn-methods-managed-uploads)
+- For the default task-based upload path, see [RN Methods: Managed Uploads](/sdk/rn-methods-managed-uploads)
 
 These methods are available through `sdk.client.photoBackup`. They are the advanced per-item sync and media-management methods exposed by the React Native client.
 

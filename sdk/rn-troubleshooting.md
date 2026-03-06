@@ -4,12 +4,12 @@ title: React Native Troubleshooting
 
 Use this page when your first integration works only partially, or when uploads fail in ways that are hard to interpret from raw SDK errors.
 
-If an error word is unfamiliar, check [Glossary](/docs/glossary) before you debug the deeper integration details.
+If an error word is unfamiliar, check [Glossary](/sdk/glossary) before you debug the deeper integration details.
 
 ## Prerequisites
 
-- You completed [React Native Quickstart](/docs/quickstart-react-native)
-- You implemented [React Native Required Interfaces](/docs/rn-interfaces)
+- You completed [React Native Quickstart](/sdk/quickstart-react-native)
+- You implemented [React Native Required Interfaces](/sdk/rn-interfaces)
 
 ## The SDK is not sending authenticated requests
 
@@ -301,6 +301,6 @@ Show the restored task as “resuming” and keep its existing progress rather t
 
 ## Related pages
 
-- [Error Handling and Retry Playbook](/docs/error-retry-matrix)
-- [Common Recipes](/docs/common-recipes)
-- [React Native Required Interfaces](/docs/rn-interfaces)
+- [Error Handling and Retry Playbook](/sdk/error-retry-matrix)
+- [Common Recipes](/sdk/common-recipes)
+- [React Native Required Interfaces](/sdk/rn-interfaces)

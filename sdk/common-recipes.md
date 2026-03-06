@@ -13,7 +13,7 @@ Read this page like this:
 
 ## Prerequisites
 
-- You completed [React Native Quickstart](/docs/quickstart-react-native)
+- You completed [React Native Quickstart](/sdk/quickstart-react-native)
 - You created one shared `sdk` client with `createRNClient(...)`
 
 ## Upload one file

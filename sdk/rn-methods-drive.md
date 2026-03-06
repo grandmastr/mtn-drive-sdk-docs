@@ -8,7 +8,7 @@ Browse files and folders, run uploads, fetch signed URLs, update metadata, and m
 
 - SDK client created with `createRNClient(...)`
 - User is authenticated
-- For default app uploads, start with [RN Methods: Managed Uploads](/docs/rn-methods-managed-uploads)
+- For default app uploads, start with [RN Methods: Managed Uploads](/sdk/rn-methods-managed-uploads)
 
 This page documents the low-level drive module, including the manual upload-session methods. New integrations should use `sdk.uploads.putFile(...)` unless they need custom protocol control.
 

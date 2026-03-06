@@ -26,7 +26,7 @@ Adapters are the bridge between the SDK and your app:
 - `uploads.taskStore` restores active uploads after restart
 - `deviceIdProvider` identifies one device for photo backup flows
 
-See [React Native Required Interfaces](/docs/rn-interfaces) for the full contracts.
+See [React Native Required Interfaces](/sdk/rn-interfaces) for the full contracts.
 
 ## Visual guide
 
@@ -123,7 +123,7 @@ Use it when you want:
 - pause/resume/cancel
 - restored uploads after restart
 
-See [RN Methods: Managed Uploads](/docs/rn-methods-managed-uploads) for the full task behavior.
+See [RN Methods: Managed Uploads](/sdk/rn-methods-managed-uploads) for the full task behavior.
 
 ## When to use `sdk.client.*`
 

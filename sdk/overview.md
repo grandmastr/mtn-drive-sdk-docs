@@ -35,14 +35,14 @@ This guide is for teams that:
 - already have a host-app sign-in flow
 - want the simplest path to file upload or media backup
 
-If you need a complete copy-paste setup, use the [React Native Quickstart](/docs/quickstart-react-native).
+If you need a complete copy-paste setup, use the [React Native Quickstart](/sdk/quickstart-react-native).
 
 ## Start here
 
-- New to the SDK: start with [React Native Quickstart](/docs/quickstart-react-native)
-- Want copy-paste patterns: jump to [Common Recipes](/docs/common-recipes)
-- Already stuck on setup: go to [React Native Troubleshooting](/docs/rn-troubleshooting)
-- Need lower-level control: use the [API Reference](/docs/rn-sdk-methods-reference)
+- New to the SDK: start with [React Native Quickstart](/sdk/quickstart-react-native)
+- Want copy-paste patterns: jump to [Common Recipes](/sdk/common-recipes)
+- Already stuck on setup: go to [React Native Troubleshooting](/sdk/rn-troubleshooting)
+- Need lower-level control: use the [API Reference](/sdk/rn-sdk-methods-reference)
 
 ## Your first upload in 30 seconds
 
@@ -61,7 +61,7 @@ This starts one upload task immediately and gives you live progress updates.
 
 ## What to read next
 
-- [Install from npm](/docs/install-npm) if the SDK is not in your app yet
-- [React Native Quickstart](/docs/quickstart-react-native) for the full first working setup
-- [Common Recipes](/docs/common-recipes) for copy-paste task patterns
-- [Glossary](/docs/glossary) if any SDK term is unfamiliar
+- [Install from npm](/sdk/install-npm) if the SDK is not in your app yet
+- [React Native Quickstart](/sdk/quickstart-react-native) for the full first working setup
+- [Common Recipes](/sdk/common-recipes) for copy-paste task patterns
+- [Glossary](/sdk/glossary) if any SDK term is unfamiliar

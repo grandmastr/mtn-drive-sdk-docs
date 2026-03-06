@@ -1,6 +1,6 @@
-# MTN Drive SDK Docs Site
+# MTN Drive Documentation Site
 
-Partner-facing documentation built with Docusaurus.
+Partner-facing documentation built with Docusaurus for both the MTN Drive SDK and API.
 
 Project location:
 
@@ -13,11 +13,18 @@ pnpm install
 pnpm dev
 pnpm build
 pnpm start
+pnpm check:docs
 pnpm lint:md
 ```
 
 - `pnpm dev`: local development server (Webpack/HMR)
 - `pnpm start`: serves prebuilt `build/` output (production-like, no Webpack dev runtime)
+- `pnpm check:docs`: runs SDK and API docs conformance checks
+
+## Site sections
+
+- SDK docs route base: `/sdk`
+- API docs route base: `/api`
 
 ## PipeOps deployment
 

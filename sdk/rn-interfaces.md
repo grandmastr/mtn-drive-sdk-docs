@@ -6,7 +6,7 @@ Implement the host-app adapters correctly so the SDK can manage auth, upload-tas
 
 ## Prerequisites
 
-- You completed [React Native Quickstart](/docs/quickstart-react-native)
+- You completed [React Native Quickstart](/sdk/quickstart-react-native)
 - You can persist small JSON payloads in app storage
 - You can read files and upload bytes from local URIs
 
@@ -14,9 +14,9 @@ Implement the host-app adapters correctly so the SDK can manage auth, upload-tas
 
 Read this page when you are wiring the SDK into a real app and need to implement or debug the required adapters.
 
-If you only want the shortest path to a working upload, follow [React Native Quickstart](/docs/quickstart-react-native) first and come back here only if setup fails.
+If you only want the shortest path to a working upload, follow [React Native Quickstart](/sdk/quickstart-react-native) first and come back here only if setup fails.
 
-If any adapter term is unfamiliar, check [Glossary](/docs/glossary) first.
+If any adapter term is unfamiliar, check [Glossary](/sdk/glossary) first.
 
 ## Adapter summary
 
@@ -528,7 +528,7 @@ Use this checklist before shipping:
 
 ## 6) Next steps
 
-- Continue with [RN Methods: Managed Uploads](/docs/rn-methods-managed-uploads)
-- Continue with [React Native SDK Methods Reference](/docs/rn-sdk-methods-reference)
-- Use [Error Handling and Retry Playbook](/docs/error-retry-matrix) for app-level handling
-- Use [React Native Troubleshooting](/docs/rn-troubleshooting) for integration diagnostics
+- Continue with [RN Methods: Managed Uploads](/sdk/rn-methods-managed-uploads)
+- Continue with [React Native SDK Methods Reference](/sdk/rn-sdk-methods-reference)
+- Use [Error Handling and Retry Playbook](/sdk/error-retry-matrix) for app-level handling
+- Use [React Native Troubleshooting](/sdk/rn-troubleshooting) for integration diagnostics

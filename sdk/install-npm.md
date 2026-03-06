@@ -113,4 +113,4 @@ pnpm why @pipeopshq/mtn-rn-sdk
 2. Install the correct release line with `npm install @pipeopshq/mtn-rn-sdk@next`.
 3. Re-run the verification step and confirm `next` is `1.0.1`.
 
-Installing only puts the packages into your app. The actual SDK wiring starts in [React Native Quickstart](/docs/quickstart-react-native).
+Installing only puts the packages into your app. The actual SDK wiring starts in [React Native Quickstart](/sdk/quickstart-react-native).

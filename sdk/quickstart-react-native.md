@@ -18,7 +18,7 @@ You will build:
 - one file upload task
 - one verification step to confirm the SDK is wired correctly
 
-If any of the terms below are new, skim [Concepts](/docs/concepts) or [Glossary](/docs/glossary) first.
+If any of the terms below are new, skim [Concepts](/sdk/concepts) or [Glossary](/sdk/glossary) first.
 
 ### The 5 steps
 
@@ -369,7 +369,7 @@ The returned object should contain:
 
 That confirms auth, low-level modules, and task restore are all connected.
 
-If this step fails, go to [React Native Troubleshooting](/docs/rn-troubleshooting) before changing retry settings or rewriting adapters.
+If this step fails, go to [React Native Troubleshooting](/sdk/rn-troubleshooting) before changing retry settings or rewriting adapters.
 
 ## 5) Upload your first file
 
@@ -415,10 +415,10 @@ You should see `state_changed` snapshots while the upload runs, and the task sho
 
 ## 6) Next steps
 
-- Use [Common Recipes](/docs/common-recipes) for copy-paste upload patterns
-- Use [React Native Troubleshooting](/docs/rn-troubleshooting) if setup is failing
-- Use [React Native Required Interfaces](/docs/rn-interfaces) if you need adapter contract details
-- Use [RN Methods: Managed Uploads](/docs/rn-methods-managed-uploads) if you want the full task API reference
+- Use [Common Recipes](/sdk/common-recipes) for copy-paste upload patterns
+- Use [React Native Troubleshooting](/sdk/rn-troubleshooting) if setup is failing
+- Use [React Native Required Interfaces](/sdk/rn-interfaces) if you need adapter contract details
+- Use [RN Methods: Managed Uploads](/sdk/rn-methods-managed-uploads) if you want the full task API reference
 
 ## Success checklist
 
