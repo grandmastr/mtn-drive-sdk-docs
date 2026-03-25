@@ -11,9 +11,9 @@ Understand the big ideas behind the MTN Drive SDK before you dive into the refer
 
 ## Auth at a high level
 
-Your host app signs the user in first, then stores the MTN access token in `tokenStore`.
+Your app receives a bearer token from its auth flow, then stores it in `tokenStore`.
 
-The SDK reads that token when it needs to make protected requests. If the token is missing or no longer valid, protected calls fail and your app should send the user back to sign-in.
+The SDK reads that token when it needs to make protected requests. If the token is missing or no longer valid, protected calls fail and your app should fetch a fresh bearer token before retrying protected calls.
 
 ## Why adapters exist
 
@@ -47,14 +47,14 @@ Notice the split: your app starts one task, then the SDK handles the upload work
 
 ```mermaid
 flowchart LR
-  A["User signs in"] --> B["Host app saves token in tokenStore"]
+  A["Auth flow completes"] --> B["App saves bearer token in tokenStore"]
   B --> C["SDK reads token for protected calls"]
   C --> D["Protected SDK request"]
   D --> E["Token expired or missing"]
-  E --> F["App sends user back to sign-in"]
+  E --> F["App fetches a fresh bearer token"]
 ```
 
-The important part is that the SDK does not invent auth on its own. Your app signs the user in first, then the SDK reuses that stored token.
+The important part is that the SDK does not invent auth on its own. Your app obtains the bearer token first, then the SDK reuses that stored token.
 
 ### Adapter bridge
 

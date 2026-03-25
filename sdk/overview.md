@@ -32,7 +32,7 @@ flowchart LR
 This guide is for teams that:
 
 - are building a React Native app
-- already have a host-app sign-in flow
+- already have an auth flow that can provide a bearer token
 - want the simplest path to file upload or media backup
 
 If you need a complete copy-paste setup, use the [React Native Quickstart](/sdk/quickstart-react-native).

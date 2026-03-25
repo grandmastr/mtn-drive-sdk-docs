@@ -6,7 +6,7 @@ Use these routes for the photo-backup device and media lifecycle. New uploads sh
 
 ## Prerequisites
 
-- You already completed [Authentication](/api/authentication).
+- You already completed [Service Integration](/api/service-integration).
 - You can generate and persist one stable `x-device-id` value per device or installation.
 - You will use [Managed Uploads](/api/managed-uploads) for new photo-backup uploads rather than the legacy `/v1/uploads` flow.
 

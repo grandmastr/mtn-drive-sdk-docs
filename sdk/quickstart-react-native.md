@@ -9,7 +9,7 @@ Get one working MTN Drive upload into your React Native app in a few minutes, us
 You should already have:
 
 - a React Native app running on iOS or Android
-- a host-app sign-in flow that can provide an MTN access token
+- an auth flow that can provide a bearer token
 - AsyncStorage available for token and task persistence
 
 You will build:
@@ -296,16 +296,16 @@ Only tune `managedRetryPolicy` if upload tasks are giving up too quickly, or if 
 
 If you are still in first-time setup, keep the defaults. Change these only after you see a real issue.
 
-After your host app signs a user in, save the MTN token:
+After your auth flow completes, save the bearer token:
 
-Why this step exists: the SDK cannot make protected calls until your app saves the MTN token into `tokenStore`.
+Why this step exists: the SDK cannot make protected calls until your app saves the bearer token into `tokenStore`.
 
 ```ts
 import { tokenStore } from './sdk-adapters';
 
-export const onHostAppSignedIn = async (mtnAccessToken: string) => {
+export const onAuthCompleted = async (bearerToken: string) => {
   await tokenStore.setTokens({
-    accessToken: mtnAccessToken,
+    accessToken: bearerToken,
     refreshToken: null,
   });
 };

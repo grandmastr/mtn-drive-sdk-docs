@@ -2,12 +2,12 @@
 title: Overview
 ---
 
-Use this section when you are integrating directly with the MTN Drive HTTP API instead of going through the React Native SDK.
+Use this section when you are integrating directly with the MTN Drive HTTP API using a service integration API key.
 
 ## Before You Start
 
-- You already have a way to obtain the MTN access token from the MTN app sign-in flow.
-- You can store the API access token and refresh token securely on the client or broker that will call MTN Drive.
+- You have an integration API key issued for a service tenant.
+- You can store the returned bearer token securely on the client or broker that will call MTN Drive.
 - You are comfortable making authenticated JSON requests and uploading bytes to pre-signed object-storage URLs.
 
 ## What these API docs cover
@@ -16,14 +16,12 @@ This first API pass is intentionally scoped.
 
 It covers:
 
-- MTN token exchange authentication
-- access-token refresh and logout
+- service integration API-key exchange
+- managed-user provisioning for service tenants
 - bearer-token usage for protected routes
 - drive file and folder lifecycle routes
 - photo-backup device and media routes
 - managed uploads through `/v2/uploads`
-
-It does not cover the broader account-auth endpoints such as signup, login, SSO, OTP, invites, or password reset, and it does not try to fully catalog every legacy upload surface.
 
 ## API docs vs SDK docs
 
@@ -32,18 +30,19 @@ Use the [SDK Docs](/sdk/overview) if you want the higher-level React Native inte
 Use the API docs when you need direct control over:
 
 - the HTTP request/response layer
-- token storage and refresh timing
+- bearer-token storage timing
 - upload-session orchestration
 - pre-signed upload URLs and multipart confirmation
 - drive and photo-backup route sequencing
+- service-tenant user mirroring and storage allocation
 
 ## Start here
 
-- Start with [Authentication](/api/authentication) if you need to exchange the MTN token and call protected routes.
+- Start with [Service Integration](/api/service-integration) if your service authenticates with an integration API key.
 - Go to [Drive](/api/drive) if you need file listing, search, folder creation, metadata, download URLs, and trash/restore flows.
 - Go to [Photo Backup](/api/photo-backup) if you need device registration, media listing, download URLs, and thumbnail retrieval.
 - Go to [Managed Uploads](/api/managed-uploads) if you need resumable upload-session flows for drive files or photo backup.
-- Use [API Reference: Authentication](/api/api-reference-authentication) when you need request and response details.
+- Use [API Reference: Service Integration](/api/api-reference-service-integration) when you need request and response details for partner-service auth and managed users.
 - Use [API Reference: Drive](/api/api-reference-drive) when you are wiring core drive endpoints.
 - Use [API Reference: Photo Backup](/api/api-reference-photo-backup) when you are wiring device and media endpoints.
 - Use [API Reference: Managed Uploads](/api/api-reference-managed-uploads) when you are wiring the upload lifecycle endpoint by endpoint.
@@ -52,36 +51,37 @@ Use the API docs when you need direct control over:
 
 ```mermaid
 flowchart LR
-  A["MTN app auth"] --> B["MTN access token"]
-  B --> C["POST /auth/token-exchange"]
-  C --> D["API access token + refresh token"]
-  D --> E["Authorization: Bearer <accessToken>"]
-  E --> F["Protected routes"]
-  F --> G["POST /v2/uploads/sessions"]
-  G --> H["Upload bytes to pre-signed URL"]
-  H --> I["Complete upload session"]
-  I --> J["Drive: /drive/*"]
-  I --> K["Photo backup: /v1/devices + /v1/media"]
+  subgraph "Service integration flow"
+    E["Integration API key"] --> F["POST /integration/auth/token"]
+    F --> G["Short-lived bearer token"]
+  end
+  G --> H["Authorization: Bearer <accessToken>"]
+  H --> I["Protected routes"]
+  I --> J["POST /v2/uploads/sessions"]
+  J --> K["Upload bytes to pre-signed URL"]
+  K --> L["Complete upload session"]
+  L --> M["Drive: /drive/*"]
+  L --> N["Photo backup: /v1/devices + /v1/media"]
 ```
 
-## What a direct API integration usually looks like
+## What a service integration usually looks like
 
-1. Get the MTN access token from the MTN app auth layer.
-2. Exchange it with `POST /auth/token-exchange`.
-3. Store the returned API access token and refresh token.
-4. Send `Authorization: Bearer <accessToken>` on protected API requests.
-5. If you are building photo backup, register the device with `POST /v1/devices/register`.
-6. For uploads, create a managed upload session, upload the bytes to the returned URL, then confirm and complete the session.
+1. Receive an integration API key for the service tenant.
+2. Exchange it with `POST /integration/auth/token`.
+3. Store the returned bearer token securely.
+4. If the service needs to manage user-scoped storage or sharing, create or update a managed user with `POST /integration/users`.
+5. If a downstream call needs to act on behalf of one managed user, mint a managed-user bearer token with `POST /integration/users/:externalUserId/token`.
+6. Send `Authorization: Bearer <accessToken>` on protected API requests.
 7. Use `/drive` routes for drive file lifecycle operations and `/v1/media` routes for photo-backup media retrieval.
-8. Call `POST /auth/refresh` when the access token expires and `POST /auth/logout` when the session should end.
+8. Re-exchange the API key when the bearer token expires.
 
 ## What to read next
 
-- [Authentication](/api/authentication)
+- [Service Integration](/api/service-integration)
 - [Drive](/api/drive)
 - [Photo Backup](/api/photo-backup)
 - [Managed Uploads](/api/managed-uploads)
 - [API Reference: Drive](/api/api-reference-drive)
 - [API Reference: Photo Backup](/api/api-reference-photo-backup)
-- [API Reference: Authentication](/api/api-reference-authentication)
+- [API Reference: Service Integration](/api/api-reference-service-integration)
 - [API Reference: Managed Uploads](/api/api-reference-managed-uploads)

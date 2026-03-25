@@ -25,14 +25,14 @@ The SDK cannot get a usable token from `tokenStore`, or the stored token is stal
 ### Checks
 
 - Confirm `tokenStore.getTokens()` returns `{ accessToken: string }`
-- Confirm the token is saved immediately after host-app sign-in
+- Confirm the token is saved immediately after your auth flow completes
 - Confirm the token value is not empty
 
 ### Fix
 
-1. Save the MTN token as soon as sign-in succeeds.
+1. Save the bearer token as soon as auth succeeds.
 2. Clear stale auth state when auth errors happen.
-3. Ask the user to sign in again before retrying protected calls.
+3. Fetch a fresh bearer token before retrying protected calls.
 
 ### What the app should do
 

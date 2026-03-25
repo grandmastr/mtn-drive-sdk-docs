@@ -3,7 +3,7 @@ import type { SidebarsConfig } from '@docusaurus/plugin-content-docs';
 const sidebars: SidebarsConfig = {
   apiSidebar: [
     'overview',
-    'authentication',
+    'service-integration',
     'drive',
     'photo-backup',
     'managed-uploads',
@@ -11,7 +11,7 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'API Reference',
       items: [
-        'api-reference-authentication',
+        'api-reference-service-integration',
         'api-reference-drive',
         'api-reference-photo-backup',
         'api-reference-managed-uploads',

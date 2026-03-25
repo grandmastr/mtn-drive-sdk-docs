@@ -5,11 +5,15 @@ import path from 'node:path';
 const docsRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 
 const apiOverviewFile = path.join(docsRoot, 'api', 'overview.md');
-const apiAuthenticationFile = path.join(docsRoot, 'api', 'authentication.md');
+const apiServiceIntegrationFile = path.join(docsRoot, 'api', 'service-integration.md');
 const apiDriveFile = path.join(docsRoot, 'api', 'drive.md');
 const apiPhotoBackupFile = path.join(docsRoot, 'api', 'photo-backup.md');
 const apiManagedUploadsFile = path.join(docsRoot, 'api', 'managed-uploads.md');
-const apiAuthReferenceFile = path.join(docsRoot, 'api', 'api-reference-authentication.md');
+const apiServiceIntegrationReferenceFile = path.join(
+  docsRoot,
+  'api',
+  'api-reference-service-integration.md',
+);
 const apiDriveReferenceFile = path.join(docsRoot, 'api', 'api-reference-drive.md');
 const apiPhotoBackupReferenceFile = path.join(docsRoot, 'api', 'api-reference-photo-backup.md');
 const apiManagedReferenceFile = path.join(docsRoot, 'api', 'api-reference-managed-uploads.md');
@@ -18,11 +22,11 @@ const homePageFile = path.join(docsRoot, 'src', 'pages', 'index.tsx');
 
 const requiredFiles = [
   apiOverviewFile,
-  apiAuthenticationFile,
+  apiServiceIntegrationFile,
   apiDriveFile,
   apiPhotoBackupFile,
   apiManagedUploadsFile,
-  apiAuthReferenceFile,
+  apiServiceIntegrationReferenceFile,
   apiDriveReferenceFile,
   apiPhotoBackupReferenceFile,
   apiManagedReferenceFile,
@@ -31,7 +35,7 @@ const requiredFiles = [
 ];
 
 const referenceFiles = [
-  apiAuthReferenceFile,
+  apiServiceIntegrationReferenceFile,
   apiDriveReferenceFile,
   apiPhotoBackupReferenceFile,
   apiManagedReferenceFile,
@@ -47,10 +51,11 @@ const requiredReferenceSections = [
   '#### Minimal curl example',
 ];
 
-const requiredAuthEndpoints = [
-  'POST /auth/token-exchange',
-  'POST /auth/refresh',
-  'POST /auth/logout',
+const requiredServiceIntegrationEndpoints = [
+  'POST /integration/auth/token',
+  'GET /integration/users',
+  'POST /integration/users',
+  'POST /integration/users/:externalUserId/token',
 ];
 
 const requiredManagedUploadEndpoints = [
@@ -126,7 +131,6 @@ for (const file of requiredFiles) {
 
 for (const file of [
   apiOverviewFile,
-  apiAuthenticationFile,
   apiDriveFile,
   apiPhotoBackupFile,
   apiManagedUploadsFile,
@@ -142,7 +146,13 @@ for (const file of [
 ok('API guide framing checks passed.');
 
 const homePageContent = read(homePageFile);
-for (const route of ['/sdk/overview', '/api/overview', '/api/drive', '/api/photo-backup']) {
+for (const route of [
+  '/sdk/overview',
+  '/api/overview',
+  '/api/drive',
+  '/api/photo-backup',
+  '/api/service-integration',
+]) {
   if (!homePageContent.includes(route)) {
     fail(`Homepage is missing route link: ${route}`);
   }
@@ -152,11 +162,11 @@ ok('Homepage split-links check passed.');
 const apiSidebarContent = read(apiSidebarFile);
 for (const docId of [
   'overview',
-  'authentication',
+  'service-integration',
   'drive',
   'photo-backup',
   'managed-uploads',
-  'api-reference-authentication',
+  'api-reference-service-integration',
   'api-reference-drive',
   'api-reference-photo-backup',
   'api-reference-managed-uploads',
@@ -167,22 +177,64 @@ for (const docId of [
 }
 ok('API sidebar coverage check passed.');
 
-const authConceptContent = read(apiAuthenticationFile);
+const serviceIntegrationGuideContent = read(apiServiceIntegrationFile);
 for (const required of [
-  '/auth/token-exchange',
-  '/auth/exchange',
-  '/auth/refresh',
-  '/auth/logout',
-  'Authorization: Bearer',
+  '/integration/auth/token',
+  '/integration/users',
+  '/integration/users/:externalUserId/token',
+  'Authorization: ApiKey',
+  'Bearer <accessToken>',
 ]) {
-  if (!authConceptContent.includes(required)) {
-    fail(`Authentication guide is missing required auth detail: ${required}`);
+  if (!serviceIntegrationGuideContent.includes(required)) {
+    fail(`Service integration guide is missing required detail: ${required}`);
   }
 }
-if (!/How to verify this worked/i.test(authConceptContent)) {
-  fail('Authentication guide is missing a verification checkpoint.');
+if (!/How to verify this worked/i.test(serviceIntegrationGuideContent)) {
+  fail('Service integration guide is missing a verification checkpoint.');
 }
-ok('Authentication guide content checks passed.');
+ok('Service integration guide content checks passed.');
+
+const docsFilesToScan = [
+  apiOverviewFile,
+  apiServiceIntegrationFile,
+  apiDriveFile,
+  apiPhotoBackupFile,
+  apiManagedUploadsFile,
+  apiServiceIntegrationReferenceFile,
+  apiDriveReferenceFile,
+  apiPhotoBackupReferenceFile,
+  apiManagedReferenceFile,
+  apiSidebarFile,
+  homePageFile,
+  path.join(docsRoot, 'docusaurus.config.ts'),
+  path.join(docsRoot, 'sdk', 'concepts.md'),
+  path.join(docsRoot, 'sdk', 'quickstart-react-native.md'),
+  path.join(docsRoot, 'sdk', 'rn-interfaces.md'),
+  path.join(docsRoot, 'sdk', 'example.md'),
+  path.join(docsRoot, 'sdk', 'overview.md'),
+  path.join(docsRoot, 'sdk', 'rn-troubleshooting.md'),
+];
+
+const forbiddenFragments = [
+  ['api', 'authentication'].join('/').replace(/^/, '/'),
+  ['api', 'api-reference-authentication'].join('/').replace(/^/, '/'),
+  ['auth', 'token-exchange'].join('/').replace(/^/, '/'),
+  ['auth', 'exchange'].join('/').replace(/^/, '/'),
+  ['auth', 'refresh'].join('/').replace(/^/, '/'),
+  ['auth', 'logout'].join('/').replace(/^/, '/'),
+  ['MTN', 'access token'].join(' '),
+  ['MTN', 'token'].join(' '),
+];
+
+for (const file of docsFilesToScan) {
+  const content = read(file);
+  for (const fragment of forbiddenFragments) {
+    if (content.includes(fragment)) {
+      fail(`Forbidden docs fragment found in ${path.basename(file)}: ${fragment}`);
+    }
+  }
+}
+ok('Forbidden auth-fragment scan passed.');
 
 const driveGuideContent = read(apiDriveFile);
 for (const required of [
@@ -242,11 +294,11 @@ if (!/How to verify this worked/i.test(managedUploadsContent)) {
 }
 ok('Managed uploads guide content checks passed.');
 
-const authSections = parseEndpointSections(read(apiAuthReferenceFile));
-const authHeadings = authSections.map((entry) => entry.heading);
-for (const endpoint of requiredAuthEndpoints) {
-  if (!authHeadings.includes(endpoint)) {
-    fail(`Missing auth endpoint section: ${endpoint}`);
+const serviceIntegrationSections = parseEndpointSections(read(apiServiceIntegrationReferenceFile));
+const serviceIntegrationHeadings = serviceIntegrationSections.map((entry) => entry.heading);
+for (const endpoint of requiredServiceIntegrationEndpoints) {
+  if (!serviceIntegrationHeadings.includes(endpoint)) {
+    fail(`Missing service integration endpoint section: ${endpoint}`);
   }
 }
 

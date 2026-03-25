@@ -97,8 +97,8 @@ const config: Config = {
               to: '/api/overview',
             },
             {
-              label: 'Authentication',
-              to: '/api/authentication',
+              label: 'Service Integration',
+              to: '/api/service-integration',
             },
             {
               label: 'Drive',

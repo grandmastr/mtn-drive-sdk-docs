@@ -6,7 +6,8 @@ import styles from './index.module.css';
 const checklist = [
   'Choose the SDK for the fastest React Native integration path.',
   'Choose the API docs when you need direct HTTP-level control.',
-  'Exchange the MTN token before calling protected API routes.',
+  'Choose Service Integration for API keys and bearer-token exchange.',
+  'Exchange the service integration API key before calling protected API routes.',
   'Use the Drive guide for file and folder lifecycle endpoints.',
   'Use the Photo Backup guide for device registration and media retrieval.',
   'Use managed uploads for resumable drive and photo-backup workflows.',
@@ -33,7 +34,7 @@ export default function Home(): ReactNode {
           <p>
             One portal for the React Native SDK and the direct API. Start with the SDK
             if you want the managed integration path, or use the API docs when you need
-            HTTP-level control over authentication, drive operations, photo backup,
+            HTTP-level control over service integration, drive operations, photo backup,
             and upload orchestration.
           </p>
           <div className={styles.actions}>
@@ -66,16 +67,16 @@ export default function Home(): ReactNode {
           <div className={styles.card}>
             <h2>API Track</h2>
             <p>
-              Use the API docs for MTN token exchange, bearer-token request patterns,
-              drive item lifecycle routes, photo-backup media flows, and managed upload
-              session orchestration.
+              Use the API docs for service-integration API keys, bearer-token request
+              patterns, drive item lifecycle routes, photo-backup media flows, and
+              managed upload session orchestration.
             </p>
             <div className={styles.cardActions}>
               <Link className="button button--outline button--primary" to="/api/overview">
                 API Overview
               </Link>
-              <Link className="button button--outline button--secondary" to="/api/authentication">
-                Authentication
+              <Link className="button button--outline button--secondary" to="/api/service-integration">
+                Service Integration
               </Link>
               <Link className="button button--outline button--secondary" to="/api/drive">
                 Drive
