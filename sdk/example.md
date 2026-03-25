@@ -9,7 +9,7 @@ Fast path: if you only need the shortest working setup, start with [React Native
 This example covers:
 
 1. installation
-2. token storage
+2. bearer-token storage
 3. upload task persistence
 4. file and device adapters
 5. `createRNClient(...)`
@@ -26,7 +26,7 @@ pnpm add @pipeopshq/mtn-rn-sdk@next @react-native-async-storage/async-storage
 
 ## 2) Build the host-app adapters
 
-Start with the auth and task-persistence adapters. This gives the SDK a place to read tokens and restore active uploads.
+Start with the bearer-token and task-persistence adapters. This gives the SDK a place to read tokens and restore active uploads.
 
 ```ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -36,7 +36,7 @@ import {
   type RnTokenStore,
 } from '@pipeopshq/mtn-rn-sdk';
 
-const TOKEN_KEY = 'mtn_sdk_tokens';
+const TOKEN_KEY = 'sdk_tokens';
 const DEVICE_ID_KEY = 'mtn_sdk_device_id';
 
 type StoredTokens = { accessToken: string | null; refreshToken?: string | null };
@@ -137,16 +137,16 @@ export const sdk = createRNClient({
 });
 ```
 
-## 4) Save user token after host-app sign-in
+## 4) Save bearer token after auth
 
-Store the MTN token as soon as your host app finishes sign-in so protected SDK calls can succeed.
+Store the bearer token as soon as your auth flow finishes so protected SDK calls can succeed.
 
 ```ts
 import { tokenStore } from './sdk-adapters';
 
-export const onUserSignedIn = async (mtnAccessToken: string) => {
+export const onAuthCompleted = async (bearerToken: string) => {
   await tokenStore.setTokens({
-    accessToken: mtnAccessToken,
+    accessToken: bearerToken,
     refreshToken: null,
   });
 };

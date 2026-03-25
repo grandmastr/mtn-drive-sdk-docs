@@ -6,7 +6,7 @@ Use the photo-backup routes to register a device, upload media with managed uplo
 
 ## Before You Start
 
-- You already completed [Authentication](/api/authentication) and have a valid bearer token.
+- You already completed [Service Integration](/api/service-integration) and have a valid bearer token.
 - You can generate and persist one stable `x-device-id` value per installation or device.
 - If you are uploading new assets, you plan to use [Managed Uploads](/api/managed-uploads) with `target.kind = photo_backup`.
 
@@ -99,4 +99,3 @@ curl -X POST 'https://youthful-fold.pipeops.app/v1/media/media-asset-id/thumbnai
 
 - [API Reference: Photo Backup](/api/api-reference-photo-backup)
 - [Managed Uploads](/api/managed-uploads)
-- [Authentication](/api/authentication)

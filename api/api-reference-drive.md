@@ -6,7 +6,7 @@ Use these `/drive` routes for the core drive file and folder lifecycle after aut
 
 ## Prerequisites
 
-- You already completed [Authentication](/api/authentication).
+- You already completed [Service Integration](/api/service-integration).
 - You understand the parent folder ids and item ids your integration persists.
 - You will use [Managed Uploads](/api/managed-uploads) for new file bytes and `/drive` for post-upload lifecycle work.
 

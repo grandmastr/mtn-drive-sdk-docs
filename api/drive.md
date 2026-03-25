@@ -2,11 +2,11 @@
 title: Drive
 ---
 
-Use the `/drive` routes to browse, search, download, organize, trash, and restore MTN Drive files and folders after authentication.
+Use the `/drive` routes to browse, search, download, organize, trash, and restore MTN Drive files and folders after service integration.
 
 ## Before You Start
 
-- You already completed [Authentication](/api/authentication) and have a valid bearer token.
+- You already completed [Service Integration](/api/service-integration) and have a valid bearer token.
 - If you are creating new drive files, you plan to upload them through [Managed Uploads](/api/managed-uploads).
 - You can persist drive item ids such as `parentId`, `fileId`, and `folderId` between requests.
 
@@ -87,4 +87,3 @@ curl 'https://youthful-fold.pipeops.app/drive/items/file-id/download-url?disposi
 
 - [API Reference: Drive](/api/api-reference-drive)
 - [Managed Uploads](/api/managed-uploads)
-- [Authentication](/api/authentication)

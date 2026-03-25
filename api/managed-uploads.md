@@ -6,7 +6,7 @@ Use `/v2/uploads` when you want the MTN Drive API to manage upload sessions for 
 
 ## Before You Start
 
-- You already completed [Authentication](/api/authentication) and have a valid bearer token.
+- You already completed [Service Integration](/api/service-integration) and have a valid bearer token.
 - You can calculate the file SHA-256 `contentHash` before session creation.
 - You can upload bytes to the returned pre-signed object-storage URLs.
 - For `target.kind = photo_backup`, you can send a stable `x-device-id` header and you have already registered the device through [Photo Backup](/api/photo-backup).
@@ -147,4 +147,3 @@ curl -X POST https://youthful-fold.pipeops.app/v2/uploads/sessions \
 - [Drive](/api/drive)
 - [Photo Backup](/api/photo-backup)
 - [API Reference: Managed Uploads](/api/api-reference-managed-uploads)
-- [Authentication](/api/authentication)

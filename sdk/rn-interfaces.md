@@ -22,7 +22,7 @@ If any adapter term is unfamiliar, check [Glossary](/sdk/glossary) first.
 
 | Adapter | What it does | When it is required |
 | - | - | - |
-| `tokenStore` | Stores the signed-in user's MTN token | Always |
+| `tokenStore` | Stores the current bearer token | Always |
 | `fileAdapter` | Reads files, hashes them, and uploads bytes | Required for `sdk.uploads.*` |
 | `uploads.taskStore` | Restores active upload tasks after app restart | Required for `sdk.uploads.*` |
 | `deviceIdProvider` | Returns one stable device ID | Required only for photo backup |
@@ -31,7 +31,7 @@ If any adapter term is unfamiliar, check [Glossary](/sdk/glossary) first.
 
 ### What it does
 
-`tokenStore` lets the SDK read, persist, and clear host-app auth tokens.
+`tokenStore` lets the SDK read, persist, and clear bearer-token auth state.
 
 ### When it is required
 
@@ -39,7 +39,7 @@ This adapter is always required because every protected SDK call depends on it.
 
 ### Common mistake
 
-Writing the token too late. Save the MTN token immediately after host-app sign-in.
+Writing the token too late. Save the bearer token immediately after your auth flow completes.
 
 ### Signature
 
@@ -61,8 +61,8 @@ interface AuthTokens {
 
 | Field | Type | Required | Default | Format/Constraints | Meaning |
 | - | - | - | - | - | - |
-| `accessToken` | `string \| null` | Yes | none | token string or `null` | Token input used by SDK auth exchange before protected calls. |
-| `refreshToken` | `string \| null` | No | none | token string | Optional host-app token field. |
+| `accessToken` | `string \| null` | Yes | none | token string or `null` | Token input used by the SDK before protected calls. |
+| `refreshToken` | `string \| null` | No | none | token string | Optional token field for apps that keep refresh state. |
 | `expiresAt` | `number` | No | none | epoch milliseconds | Optional host-app token metadata. |
 
 ### Required behavior
@@ -78,7 +78,7 @@ interface AuthTokens {
 ```ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const TOKEN_KEY = 'mtn_sdk_tokens';
+const TOKEN_KEY = 'sdk_tokens';
 
 export const tokenStore = {
   async getTokens() {

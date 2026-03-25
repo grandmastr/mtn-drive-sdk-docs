@@ -6,7 +6,7 @@ Use these `/v2/uploads` routes to create, inspect, refresh, reconcile, confirm, 
 
 ## Prerequisites
 
-- You already completed [Authentication](/api/authentication).
+- You already completed [Service Integration](/api/service-integration).
 - You can compute the file SHA-256 `contentHash`.
 - You can upload bytes to pre-signed object-storage URLs.
 - For `photo_backup` targets, you can send a stable `x-device-id` header.
